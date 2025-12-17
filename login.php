@@ -1,107 +1,15 @@
-<?php
-session_start();
-
-// ✅ INJEK: ambil id peserta untuk link kartu (opsional)
-$peserta_id = null;
-if (isset($_GET['id']) && ctype_digit($_GET['id'])) {
-    $peserta_id = (int)$_GET['id'];
-} elseif (!empty($_SESSION['last_pendaftaran_id']) && ctype_digit((string)$_SESSION['last_pendaftaran_id'])) {
-    $peserta_id = (int)$_SESSION['last_pendaftaran_id'];
-}
-$kartuHref = $peserta_id ? ("kartu.php?id=" . urlencode((string)$peserta_id)) : "kartu.php";
-
-// ====== KONEKSI DATABASE ======
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "pmb_udsa";
-
-$mysqli = new mysqli($host, $user, $pass, $db);
-if ($mysqli->connect_errno) {
-    die("Gagal koneksi database: " . $mysqli->connect_error);
-}
-
-// ====== LOGIKA PILIH BULAN ======
-$tahun_akademik_default = "2025/2026";
-$tahun_default = 2026;
-
-// mapping bulan
-$bulan_map = [
-    1  => "Januari",
-    2  => "Februari",
-    3  => "Maret",
-    4  => "April",
-    5  => "Mei",
-    6  => "Juni",
-    7  => "Juli",
-    8  => "Agustus",
-    9  => "September",
-    10 => "Oktober",
-    11 => "November",
-    12 => "Desember"
-];
-
-// ambil bulan dari GET, default 1 (Januari)
-$bulan_pilih = isset($_GET['bulan']) ? (int)$_GET['bulan'] : 1;
-if ($bulan_pilih < 1 || $bulan_pilih > 12) {
-    $bulan_pilih = 1;
-}
-
-// ====== AMBIL DATA LAPORAN HEADER ======
-$stmt = $mysqli->prepare("
-    SELECT * FROM laporan_bulanan
-    WHERE tahun_akademik = ? AND bulan = ? AND tahun = ?
-    LIMIT 1
-");
-$stmt->bind_param("sii", $tahun_akademik_default, $bulan_pilih, $tahun_default);
-$stmt->execute();
-$laporan_result = $stmt->get_result();
-$laporan = $laporan_result->fetch_assoc();
-$stmt->close();
-
-// jika tidak ada, set default 0
-$total_pendaftar    = $laporan ? (int)$laporan['total_pendaftar'] : 0;
-$total_lolos        = $laporan ? (int)$laporan['total_lolos'] : 0;
-$total_daftar_ulang = $laporan ? (int)$laporan['total_daftar_ulang'] : 0;
-$total_tidak_lolos  = $laporan ? (int)$laporan['total_tidak_lolos'] : 0;
-
-// id laporan untuk detail
-$laporan_id = $laporan ? (int)$laporan['id'] : 0;
-
-// ====== AMBIL DATA DETAIL PRODI ======
-$detail_rows = [];
-if ($laporan_id > 0) {
-    $stmt2 = $mysqli->prepare("
-        SELECT * FROM laporan_bulanan_prodi
-        WHERE laporan_bulanan_id = ?
-        ORDER BY nama_prodi ASC
-    ");
-    $stmt2->bind_param("i", $laporan_id);
-    $stmt2->execute();
-    $detail_result = $stmt2->get_result();
-    while ($row = $detail_result->fetch_assoc()) {
-        $detail_rows[] = $row;
-    }
-    $stmt2->close();
-}
-
-// nama bulan untuk tampilan
-$nama_bulan = $bulan_map[$bulan_pilih];
-
-// ✅ INJEK: URL action form bulan supaya id ikut kebawa
-$formAction = $_SERVER['PHP_SELF'];
-?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Laporan Bulanan PMB UDSA 2025/2026</title>
+<title>Login - PMB UDSA</title>
 
 <!-- GOOGLE FONTS -->
 <link href="https://fonts.googleapis.com/css2?family=Katibeh&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Miltonian+Tattoo&family=Gravitas+One&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Jaldi:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Gantari:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
@@ -206,6 +114,43 @@ body{
 }
 
 /* ================= NAV MENU (UNDERLINE KLASIK) ================= */
+
+.navbar-full{ background:var(--navbar-bg); width:100%; }
+.nav-container{
+    max-width:1200px;
+    padding:16px 40px;
+    margin:0 auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+/* BRAND */
+.brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+.brand img{ height:54px; }
+
+/* PMB + UDSA */
+.pmb-title{
+    font-family: 'Gravitas One', serif;
+    font-size: 30px;
+    font-weight: 400;
+    color: #7F7121;
+    letter-spacing: 1px;
+    margin-right: 6px;
+}
+.udsa-title{
+    font-family: 'Katibeh', serif;
+    font-size: 40px;
+    font-weight: 400;
+    color: #1a355c;
+    letter-spacing: 1px;
+}
+
+/* ================= NAV MENU ================= */
 .menu{
     display:flex;
     align-items:center;
@@ -311,153 +256,125 @@ body{
 .info-dropdown a::after{ display:none !important; }
 .info-dropdown a:hover{ color:#79787F; }
 
-/* ====================== MAIN – LAPORAN ====================== */
+/* ============= MAIN PANEL (LOGIN) ============= */
 
 .main-panel{
-    background:#f6f2d9;
-    padding:45px 0 70px;
+    background:#5c5950;
+    padding:60px 0 80px;
 }
 .wrapper{
     max-width:1200px;
     margin:0 auto;
 }
 
-/* HEADER LAPORAN + PILIH BULAN */
-.report-header{
-    margin:0 40px 20px;
+/* HEADER DI ATAS CARD (LOGO + TEKS UNIV) */
+.login-header{
     display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    font-family:"Karma", sans-serif;
-}
-.report-title-block{
-    max-width:700px;
-}
-.report-title{
-    font-size:28px;
-    font-weight:400;
-    margin-bottom:10px;
-}
-.report-subtitle{
-    font-size:18px;
-}
-
-/* SELECT BULAN */
-.month-select-wrapper{
-    min-width:220px;
-}
-.month-select{
-    width:100%;
-    padding:10px 16px;
-    font-size:18px;
-    border:2px solid #000;
-    background:#fdfdfd;
-    appearance:none;
-    -moz-appearance:none;
-    -webkit-appearance:none;
-    position:relative;
-}
-.month-select-wrapper{
-    position:relative;
-}
-.month-select-wrapper::after{
-    content:"\25BE";
-    position:absolute;
-    right:16px;
-    top:50%;
-    transform:translateY(-50%);
-    pointer-events:none;
-    font-size:18px;
-}
-
-/* BAR JUDUL BULAN */
-.report-month-bar{
-    margin:0 40px;
-    margin-bottom:26px;
-    background:#7a6b23;
-    color:#fff;
-    padding:10px 24px;
-    font-size:20px;
-    font-weight:400;
-    font-family:"Karma", sans-serif;
-}
-
-/* SUMMARY CARDS */
-.summary-row{
-    margin:0 40px 32px;
-    display:grid;
-    grid-template-columns:repeat(4, 1fr);
-    gap:24px;
-}
-.summary-card{
-    color:#fff;
-    padding:26px 24px;
-}
-.summary-title{
-    font-size:20px;
-    font-weight:400;
-    font-family:"Karma", serif;
-    margin-bottom:16px;
-}
-.summary-number{
-    font-size:36px;
-    font-weight:400;
-    font-family:"Karma", sans-serif;
-}
-.summary-caption{
-    margin-top:4px;
-    font-size:18px;
-}
-
-/* CARD COLORS */
-.summary-total{ background:#2b8ab3; }
-.summary-lolos{ background:#a23b3b; }
-.summary-daftar{ background:#2f8b3a; }
-.summary-tidak{ background:#6a5841; }
-
-/* TABEL REKAP */
-.report-table-title{
-    margin:0 40px 10px;
-    font-size:20px;
-    font-weight:400;
-    font-family:"Karma", sans-serif;
-}
-
-.table-wrapper{
-    margin:0 40px;
-    overflow-x:auto;
-}
-
-.report-table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:16px;
-}
-
-/* HEADER */
-.report-table thead tr{
-    font-family:"Karma", sans-serif;
-    background:#333335;
+    align-items:center;
+    justify-content:center;
+    gap:30px;
+    margin-bottom:30px;
     color:#fff;
 }
-.report-table th,
-.report-table td{
-    padding:10px 14px;
-    border:1px solid #555;
+.login-header-logo{
+    height:110px;
+    object-fit:contain;
 }
-.report-table th{
-    font-weight:400;
+.login-header-text{
+    text-align:left;
+}
+.login-header-text .univ-title{
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:1px;
+}
+.login-header-text .univ-subtitle{
+    font-size:22px;
+    font-weight:600;
+}
+
+/* CARD LOGIN */
+.login-card-wrapper{
+    display:flex;
+    justify-content:center;
+}
+.login-card{
+    background:#ffffff;
+    width:480px;
+    padding:40px 60px 50px;
+    border-radius:10px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.25);
+    text-align:center;
+}
+
+/* JUDUL "Log in" */
+.login-title{
+    align-items:center;
+    justify-content:center;
+    font-family:"Great Vibes", cursive;
+    font-size:40px;
+    margin-bottom:30px;
+    color:#222;
+}
+
+/* INPUT GROUP */
+.login-group{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:18px;
     text-align:left;
 }
 
-/* BODY */
-.report-table tbody tr:nth-child(odd){
-    background:#efefef;
-    font-family:"Karma", sans-serif;
+/* INPUT */
+.login-input{
+    width:100%;
+    padding:12px 14px;
+    border-radius:10px;
+    border:2px solid #7a6b23;
+    background:#a89442;
+    color:#fff;
+    font-size:16px;
+    font-family:"Katibeh", sans-serif;
 }
-.report-table tbody tr:nth-child(even){
-    background:#e1e1e1;
-    font-family:"Karma", sans-serif;
+.login-input::placeholder{
+    color:#f1e7c8;
+    font-size:15px;
+}
+
+/* LOGIN BUTTON */
+.btn-login{
+    margin-top:12px;
+    width:220px;
+    padding:12px 0;
+    border-radius:10px;
+    border:2px solid #000;
+    background:#e6c660;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    font-weight:400;
+    cursor:pointer;
+    font-family:"Katibeh", sans-serif;
+}
+.btn-login:hover{
+    filter:brightness(0.95);
+}
+
+/* LINK BAWAH */
+.login-footer-links{
+    margin-top:22px;
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+}
+.login-footer-links a{
+    color:#7a5a28;
+    text-decoration:none;
+    font-weight:600;
+}
+.login-footer-links a:hover{
+    text-decoration:underline;
 }
 
 /* ============= FOOTER ============= */
@@ -494,9 +411,9 @@ body{
 
 .footer-right {
     display: grid;
-    grid-template-columns: 0.5fr 0.5fr;
-    grid-template-rows: auto auto;
-    gap: 20px 18px;
+    grid-template-columns: 0.5fr 0.5fr; /* dua kolom */
+    grid-template-rows: auto auto; /* dua baris */
+    gap: 20px 18px; /* jarak antar item: vertical | horizontal */
     align-items: center;
 }
 
@@ -507,7 +424,7 @@ body{
 }
 
 .footer-icon {
-    width: 22px;
+    width: 22px;  /* ukuran icon sesuai foto */
     height: auto;
 }
 
@@ -527,7 +444,6 @@ body{
     from {opacity: 0;}
     to {opacity: 1;}
 }
-
 /* panel abu-abu 50% tinggi layar, di atas, full width */
 .search-panel {
     background:#f5f5f5;
@@ -538,6 +454,11 @@ body{
     align-items:center;
     padding-top:80px;
     position:relative;
+    animation: fadeIn .3s ease
+}
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
 }
 
 /* tombol X bulat di pojok kanan atas panel */
@@ -560,6 +481,13 @@ body{
 .search-container {
     width: 70%;
     max-width: 900px;
+}
+
+.search-container label {
+    font-size: 32px;
+    font-family: "Karma", serif;
+    margin-bottom: 12px;
+    display: block;
 }
 
 .search-input-wrapper {
@@ -600,6 +528,7 @@ body{
 }
 .search-button:hover { background: #64581d; }
 
+/* HASIL PENCARIAN DI BAWAH INPUT */
 .search-results{
     margin-top: 28px;
     max-height: 35vh;
@@ -624,7 +553,7 @@ body{
 </head>
 <body>
 
-<!-- TOPBAR -->
+<!-- TOPBAR (UPDATED) -->
 <div class="topbar">
     <div class="topbar-content">
         <div class="topbar-left">
@@ -634,16 +563,19 @@ body{
             <a href="#" onclick="openSearch();return false;">Search</a>
         </div>
         <div class="topbar-right">
+
             <div class="topbar-item">
-                <img src="assets/icons/location.png" class="topbar-icon" alt="">
+                <img src="assets/icons/location.png" class="topbar-icon">
                 <span>JL. Lingkar Salatiga - Pulutan</span>
             </div>
 
             <div class="topbar-item">
-                <img src="assets/icons/phone.png" class="topbar-icon" alt="">
+                <img src="assets/icons/phone.png" class="topbar-icon">
                 <span>(+62) 0123456</span>
             </div>
+
         </div>
+
     </div>
 </div>
 
@@ -652,7 +584,7 @@ body{
     <div class="nav-container">
 
         <div class="brand">
-            <img src="assets/images/logo.png" alt="">
+            <img src="assets/images/logo.png">
             <div>
                 <span class="pmb-title">PMB</span>
                 <span class="udsa-title">UDSA</span>
@@ -674,159 +606,54 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-
-            <!-- ✅ INJEK: kartu peserta dinamis -->
-            <a href="<?php echo htmlspecialchars($kartuHref); ?>" class="login">Kartu Peserta</a>
+            <a href="login.php" class="login">Login</a>
         </div>
     </div>
 </div>
 
-<!-- MAIN LAPORAN -->
+<!-- MAIN LOGIN (TIDAK DIUBAH) -->
 <div class="main-panel">
     <div class="wrapper">
 
-        <!-- Header + Pilih Bulan -->
-        <section class="report-header">
-            <div class="report-title-block">
-                <h1 class="report-title">Laporan Bulanan PMB UDSA Tahun <?php echo htmlspecialchars($tahun_akademik_default); ?></h1>
-                <p class="report-subtitle">
-                    Ringkasan aktivitas statistik dan pendaftaran selama satu bulan
-                </p>
+        <div class="login-header">
+            <img src="assets/images/logo.png" alt="Logo UDSA" class="login-header-logo">
+            <div class="login-header-text">
+                <div class="univ-title">UNIVERSITAS</div>
+                <div class="univ-subtitle">Dua Sembilan April</div>
             </div>
+        </div>
 
-            <div class="month-select-wrapper">
-                <form method="get" id="formBulan" action="<?php echo htmlspecialchars($formAction); ?>">
-                    <!-- ✅ INJEK: biar id ikut kebawa pas ganti bulan -->
-                    <?php if ($peserta_id): ?>
-                        <input type="hidden" name="id" value="<?php echo htmlspecialchars((string)$peserta_id); ?>">
-                    <?php endif; ?>
+        <div class="login-card-wrapper">
+            <div class="login-card">
 
-                    <select class="month-select" name="bulan" onchange="document.getElementById('formBulan').submit()">
-                        <option value="">Pilih bulan</option>
-                        <?php foreach($bulan_map as $num => $nama): ?>
-                            <option value="<?php echo $num; ?>" <?php if($num == $bulan_pilih) echo 'selected'; ?>>
-                                <?php echo $nama; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                <div class="login-title">Log in</div>
+
+                <form action="snbp.php" method="post">
+                    <div class="login-group">
+                        <input type="text" name="userid" class="login-input" placeholder="ID Pendaftaran/ email">
+                    </div>
+
+                    <div class="login-group">
+                        <input type="password" name="password" class="login-input" placeholder="Password">
+                    </div>
+
+                    <button type="submit" class="btn-login">Log in</button>
+
+                    <div class="login-footer-links">
+                        <span>Forget your password?</span>
+                        <span>Don't have an account yet?<br>
+                            <a href="registrasi.php">Create account</a>
+                        </span>
+                    </div>
                 </form>
+
             </div>
-        </section>
-
-        <!-- Bar Laporan Bulan -->
-        <div class="report-month-bar">
-            Laporan Bulan <?php echo htmlspecialchars($nama_bulan); ?>
-            <?php if(!$laporan): ?>
-                - <span style="font-weight:400;">(Belum ada data di database)</span>
-            <?php endif; ?>
-        </div>
-
-        <!-- Summary Cards -->
-        <div class="summary-row">
-            <div class="summary-card summary-total">
-                <div class="summary-title">Total Pendaftar</div>
-                <div class="summary-number"><?php echo number_format($total_pendaftar, 0, ',', '.'); ?></div>
-                <div class="summary-caption">Peserta</div>
-            </div>
-
-            <div class="summary-card summary-lolos">
-                <div class="summary-title">Lolos Seleksi</div>
-                <div class="summary-number"><?php echo number_format($total_lolos, 0, ',', '.'); ?></div>
-                <div class="summary-caption">Peserta</div>
-            </div>
-
-            <div class="summary-card summary-daftar">
-                <div class="summary-title">Daftar Ulang</div>
-                <div class="summary-number"><?php echo number_format($total_daftar_ulang, 0, ',', '.'); ?></div>
-                <div class="summary-caption">Peserta</div>
-            </div>
-
-            <div class="summary-card summary-tidak">
-                <div class="summary-title">Tidak Lolos Seleksi</div>
-                <div class="summary-number"><?php echo number_format($total_tidak_lolos, 0, ',', '.'); ?></div>
-                <div class="summary-caption">Peserta</div>
-            </div>
-        </div>
-
-        <!-- Tabel Rekap -->
-        <h2 class="report-table-title">Tabel Rekap Detail Pendaftar per Program Studi</h2>
-
-        <div class="table-wrapper">
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th>Program Studi</th>
-                        <th>Pendaftar</th>
-                        <th>Lolos Seleksi</th>
-                        <th>Daftar Ulang</th>
-                        <th>Kapasitas</th>
-                        <th>Keterangan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (count($detail_rows) > 0): ?>
-                        <?php foreach($detail_rows as $d): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($d['nama_prodi']); ?></td>
-                                <td><?php echo (int)$d['pendaftar']; ?></td>
-                                <td><?php echo (int)$d['lolos_seleksi']; ?></td>
-                                <td><?php echo (int)$d['daftar_ulang']; ?></td>
-                                <td><?php echo (int)$d['kapasitas']; ?></td>
-                                <td><?php echo htmlspecialchars($d['keterangan']); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="6" style="text-align:center;">
-                                Belum ada data detail program studi untuk bulan ini.
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
         </div>
 
     </div>
 </div>
 
-<!-- FOOTER -->
-<div class="footer-full">
-    <div class="footer-container">
-
-        <div class="footer-left">
-            <img src="assets/images/logo.png" class="footer-logo" alt="">
-            <div class="footer-address">
-                <b>UDSA</b><br>
-                Jln. Lingkar Salatiga KM 2 Pulutan<br>
-                Kota Salatiga, Jawa Tengah
-            </div>
-        </div>
-
-        <div class="footer-right">
-            <div class="footer-item">
-                <img src="assets/icons/ig.png" class="footer-icon" alt="">
-                <span>@udsa_salatiga</span>
-            </div>
-
-            <div class="footer-item">
-                <img src="assets/icons/yt.png" class="footer-icon" alt="">
-                <span>UDSA SALATIGA</span>
-            </div>
-
-            <div class="footer-item">
-                <img src="assets/icons/telp.png" class="footer-icon" alt="">
-                <span>(+62) 0123456</span>
-            </div>
-
-            <div class="footer-item">
-                <img src="assets/icons/mail.png" class="footer-icon" alt="">
-                <span>pmb@udsasalatiga.ac.id</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- SEARCH OVERLAY -->
+<!-- FOOTER (TIDAK DIUBAH) -->
 <div class="search-overlay" id="searchOverlay">
     <div class="search-panel">
         <div class="search-close" onclick="closeSearch()">X</div>
@@ -838,6 +665,7 @@ body{
             </div>
 
             <button class="search-button" onclick="doSearch()">Search</button>
+
             <div id="searchResults" class="search-results"></div>
         </div>
     </div>
@@ -875,6 +703,7 @@ function closeSearch(){
     if (input) input.value = "";
 }
 
+/* FUNCTION SEARCH NAVBAR PAGES */
 function doSearch(){
     const input = document.getElementById("searchInput");
     const keyword = (input.value || "").trim().toLowerCase();
@@ -918,8 +747,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-
-// ESC untuk tutup
+/* opsional: tekan ESC untuk tutup search */
 document.addEventListener("keydown", (e) => {
     if(e.key === "Escape"){
         const overlay = document.getElementById("searchOverlay");

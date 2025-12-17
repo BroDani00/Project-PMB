@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+/* INJEK: link kartu peserta dinamis */
+$kartuHref = "kartu.php";
+if (!empty($_SESSION['last_pendaftaran_id'])) {
+    $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -327,8 +336,6 @@ body{
 }
 
 /* ========== SEARCH OVERLAY (DESAIN AWAL) ========== */
-
-/* overlay gelap menutupi seluruh layar (termasuk topbar & navbar) */
 .search-overlay {
     position: fixed;
     inset: 0;
@@ -344,7 +351,6 @@ body{
     from {opacity: 0;}
     to {opacity: 1;}
 }
-/* panel abu-abu 50% tinggi layar, di atas, full width */
 .search-panel {
     background:#f5f5f5;
     width:100%;
@@ -356,7 +362,6 @@ body{
     position:relative;
 }
 
-/* tombol X bulat di pojok kanan atas panel */
 .search-close {
     position: absolute;
     top:25px;
@@ -423,7 +428,6 @@ body{
 }
 .search-button:hover { background: #64581d; }
 
-/* HASIL PENCARIAN DI BAWAH INPUT */
 .search-results{
     margin-top: 28px;
     max-height: 35vh;
@@ -498,7 +502,9 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="kartu.php" class="login">Kartu Peserta</a>
+
+            <!-- ✅ INJEK: kartu peserta dinamis -->
+            <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
         </div>
     </div>
 </div>

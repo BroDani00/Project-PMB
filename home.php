@@ -1,4 +1,6 @@
 <?php
+session_start(); // ✅ INJEK: wajib agar bisa baca session last_pendaftaran_id
+
 // ======================= SETUP DATABASE & API ULASAN =======================
 $host = "localhost";
 $user = "root";           // ganti jika beda
@@ -104,6 +106,12 @@ if (isset($_GET['reviews_api'])) {
     // kalau action tidak dikenali
     echo "error: unknown action";
     exit;
+}
+
+// ✅ INJEK: LINK NAVBAR KARTU PESERTA DINAMIS
+$kartuHref = "kartu.php";
+if (!empty($_SESSION['last_pendaftaran_id'])) {
+    $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
 }
 ?>
 <!DOCTYPE html>
@@ -904,7 +912,9 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="kartu.php" class="login">Kartu Peserta</a>
+
+            <!-- ✅ INJEK: link dinamis -->
+            <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
         </div>
     </div>
 </div>

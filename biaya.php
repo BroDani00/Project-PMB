@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+/* INJEK: link kartu peserta dinamis */
+$kartuHref = "kartu.php";
+if (!empty($_SESSION['last_pendaftaran_id'])) {
+    $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -543,7 +552,9 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="kartu.php" class="login">Kartu Peserta</a>
+
+            <!-- ✅ INJEK: kartu peserta dinamis -->
+            <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
         </div>
     </div>
 </div>
@@ -755,6 +766,52 @@ function closeSearch(){
 }
 
 /* FUNCTION SEARCH NAVBAR PAGES */
+function doSearch(){
+    const input = document.getElementById("searchInput");
+    const keyword = (input.value || "").trim().toLowerCase();
+    const resultBox = document.getElementById("searchResults");
+    resultBox.innerHTML = "";
+
+    if(keyword === ""){
+        alert("Masukkan kata pencarian!");
+        return;
+    }
+
+    const results = NAV_PAGES.filter(page => {
+        const inTitle = page.title.toLowerCase().includes(keyword);
+        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+        return inTitle || inKeywords;
+    });
+
+    if(results.length === 0){
+        resultBox.innerHTML = '<div class="search-noresult">Halaman tidak ditemukan. Coba kata kunci lain.</div>';
+        return;
+    }
+
+    results.forEach(page => {
+        const item = document.createElement("div");
+        item.className = "search-result-item";
+        item.onclick = () => { window.location.href = page.url; };
+        item.innerHTML = `<div class="search-result-item-title">${page.title}</div>`;
+        resultBox.appendChild(item);
+    });
+}
+// tekan ENTER untuk search
+document.getElementById("searchInput").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+        e.preventDefault(); // mencegah reload / submit default
+        doSearch();
+    }
+});
+
+/* opsional: tekan ESC untuk tutup search */
+document.addEventListener("keydown", (e) => {
+    if(e.key === "Escape"){
+        const overlay = document.getElementById("searchOverlay");
+        if(overlay && overlay.style.display === "flex") closeSearch();
+    }
+});
+
 /* ================== SEARCH UNTUK ISI TABEL UKT ================== */
 (function initTableSearch(){
   const input = document.getElementById("tableSearchInput");

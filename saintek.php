@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+/* INJEK: link kartu peserta dinamis */
+$kartuHref = "kartu.php";
+if (!empty($_SESSION['last_pendaftaran_id'])) {
+    $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -627,7 +636,9 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="kartu.php" class="login">Karu Peserta</a>
+
+            <!-- ✅ INJEK: kartu peserta dinamis + perbaiki typo -->
+            <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
         </div>
     </div>
 </div>

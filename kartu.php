@@ -1,11 +1,23 @@
 <?php
+session_start();
 require 'koneksi.php';
 
-if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
-    die("ID peserta tidak ditemukan di URL.");
+/* ✅ INJEK: ambil ID dari GET, kalau tidak ada ambil dari session */
+$id = null;
+
+if (isset($_GET['id']) && ctype_digit($_GET['id'])) {
+    $id = (int) $_GET['id'];
+} elseif (!empty($_SESSION['last_pendaftaran_id']) && ctype_digit((string)$_SESSION['last_pendaftaran_id'])) {
+    $id = (int) $_SESSION['last_pendaftaran_id'];
 }
 
-$id = (int) $_GET['id'];
+/* kalau tetap tidak dapat ID */
+if (!$id) {
+    die("ID peserta tidak ditemukan. Silakan daftar dulu atau buka kartu dari link yang benar.");
+}
+
+/* ✅ INJEK: link kartu peserta dinamis untuk navbar */
+$kartuHref = "kartu.php?id=" . urlencode((string)$id);
 
 $stmt = $conn->prepare("SELECT * FROM pendaftaran_snbp WHERE id = ?");
 if (!$stmt) {
@@ -27,8 +39,8 @@ $nomor_peserta = "SNBP-2026-" . str_pad((string)$data['id'], 4, "0", STR_PAD_LEF
 $nama     = $data['nama']      ?? '-';
 $nisn     = $data['nisn']      ?? '-';
 $sekolah  = $data['asal']      ?? '-';
-$kabkota  = $data['kabupaten'] ?? '-';   // sekarang dari DB
-$provinsi = $data['provinsi']  ?? '-';   // sekarang dari DB
+$kabkota  = $data['kabupaten'] ?? '-';
+$provinsi = $data['provinsi']  ?? '-';
 $prodi1   = $data['prodi1']    ?? 'Belum diisi';
 $prodi2   = $data['prodi2']    ?? 'Belum diisi';
 
@@ -525,8 +537,10 @@ body{
         </div>
       </div>
 
-      <a href="daftar.php" class="active">Daftar</a>
-      <a href="kartu.php" class="login">Kartu Peserta</a>
+      <a href="daftar.php">Daftar</a>
+
+      <!-- ✅ INJEK: selalu mengarah ke kartu peserta yang benar -->
+      <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
     </div>
   </div>
 </div>
@@ -706,6 +720,7 @@ function doSearch(){
     resultBox.appendChild(item);
   });
 }
+
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("searchInput");
   if (input) {
@@ -717,6 +732,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
 document.addEventListener("keydown", (e) => {
   if(e.key === "Escape"){
     const overlay = document.getElementById("searchOverlay");

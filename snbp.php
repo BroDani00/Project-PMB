@@ -84,6 +84,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($stmt->execute()) {
             $last_id = $stmt->insert_id;
+
+            // ✅ SIMPAN ID TERAKHIR KE SESSION -> NAVBAR "KARTU PESERTA" BISA LANGSUNG TAMPILKAN KARTU
+            $_SESSION['last_pendaftaran_id'] = $last_id;
+
             $stmt->close();
             $conn->close();
 
@@ -96,8 +100,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-?>
 
+// ✅ BUAT LINK NAVBAR KARTU PESERTA DINAMIS
+$kartuHref = "kartu.php";
+if (!empty($_SESSION['last_pendaftaran_id'])) {
+    $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -571,7 +580,9 @@ body{
       </div>
 
       <a href="daftar.php" class="active">Daftar</a>
-      <a href="kartu.php" class="login">Kartu Peserta</a>
+
+      <!-- ✅ LINK DINAMIS: kalau sudah daftar -> kartu.php?id=... -->
+      <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
     </div>
   </div>
 </div>
@@ -673,7 +684,6 @@ body{
                 <?php endforeach; ?>
               </select>
             </div>
-
 
             <!-- CAPTCHA -->
             <div class="kode-group">
@@ -937,6 +947,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadProvinces();
 });
+
 const prodi1 = document.querySelector('select[name="prodi1"]');
 const prodi2 = document.querySelector('select[name="prodi2"]');
 
@@ -945,7 +956,6 @@ function syncProdi() {
     opt.disabled = opt.value && opt.value === prodi1.value;
   });
 }
-
 prodi1.addEventListener("change", syncProdi);
 </script>
 

@@ -1,3 +1,12 @@
+<?php
+session_start(); // ✅ INJEK: agar bisa baca session last_pendaftaran_id
+
+// ✅ INJEK: link kartu peserta dinamis
+$kartuHref = "kartu.php";
+if (!empty($_SESSION['last_pendaftaran_id'])) {
+    $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -172,7 +181,7 @@ body{
 }
 .menu a.login:hover{ border-color:#cc0000 !important; }
 
-/* ================= DROPDOWN INFO ================= */
+ /* ================= DROPDOWN INFO ================= */
 /* WRAPPER */
 .menu-info{
   position:relative;
@@ -562,7 +571,9 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="kartu.php" class="login">Kartu Peserta</a>
+
+            <!-- ✅ INJEK: kartu peserta dinamis -->
+            <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
         </div>
     </div>
 </div>

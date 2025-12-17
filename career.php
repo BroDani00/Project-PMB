@@ -1,3 +1,13 @@
+<?php
+session_start();
+
+/* ===== INJEK: link kartu peserta dinamis dari URL (?id=) ===== */
+$peserta_id = null;
+if (isset($_GET['id']) && ctype_digit($_GET['id'])) {
+    $peserta_id = (int) $_GET['id'];
+}
+$kartuHref = $peserta_id ? ("kartu.php?id=" . urlencode((string)$peserta_id)) : "kartu.php";
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -32,7 +42,6 @@ body{
 }
 
 /* ================= TOPBAR ================= */
-
 .topbar{
     background:#f8f6e4;
     padding:6px 0;
@@ -56,103 +65,22 @@ body{
     font-size:14px;
     letter-spacing:0.3px;
 }
-.topbar-right {
-    display: flex;
-    gap: 32px;
-}
-
-.topbar-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.topbar-icon {
-    width: 16px;
-    height: 16px;
-    opacity: 0.85;
-}
-
-
-/* ================= NAVBAR ================= */
-
-.navbar-full{ background:var(--navbar-bg); width:100%; }
-.nav-container{
-    max-width:1200px;
-    padding:16px 40px;
-    margin:0 auto;
+.topbar-right{
     display:flex;
-    justify-content:space-between;
-    align-items:center;
+    gap:32px;
 }
-
-/* BRAND */
-.brand{
+.topbar-item{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:6px;
 }
-.brand img{ height:54px; }
-
-/* PMB pakai Gravitas One, UDSA pakai Katibeh */
-.pmb-title{
-    font-family: 'Gravitas One', serif;
-    font-size: 30px;
-    font-weight: 400;
-    color: #7F7121;
-    letter-spacing: 1px;
-    margin-right: 6px;
-}
-.udsa-title{
-    font-family: 'Katibeh', serif;
-    font-size: 40px;
-    font-weight: 400;
-    color: #1a355c;
-    letter-spacing: 1px;
-}
-
-/* ================= NAV MENU (UNDERLINE KLASIK) ================= */
-
-.topbar{
-    background:#f8f6e4;
-    padding:6px 0;
-    border-bottom:1px solid rgba(0,0,0,0.08);
-    font-size:13px;
-    font-family:"Gantari", sans-serif;
-}
-.topbar-content{
-    max-width:1200px;
-    margin:0 auto;
-    padding:0 40px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-.topbar-left a{
-    color:#000;
-    text-decoration:none;
-    margin-right:22px;
-    font-family:"Gantari", sans-serif;
-    font-size:14px;
-    letter-spacing:0.3px;
-}
-.topbar-right {
-    display: flex;
-    gap: 32px;
-}
-.topbar-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.topbar-icon {
-    width: 16px;
-    height: 16px;
-    opacity: 0.85;
+.topbar-icon{
+    width:16px;
+    height:16px;
+    opacity:.85;
 }
 
 /* ================= NAVBAR ================= */
-
 .navbar-full{ background:var(--navbar-bg); width:100%; }
 .nav-container{
     max-width:1200px;
@@ -173,19 +101,19 @@ body{
 
 /* PMB + UDSA */
 .pmb-title{
-    font-family: 'Gravitas One', serif;
-    font-size: 30px;
-    font-weight: 400;
-    color: #7F7121;
-    letter-spacing: 1px;
-    margin-right: 6px;
+    font-family:'Gravitas One', serif;
+    font-size:30px;
+    font-weight:400;
+    color:#7F7121;
+    letter-spacing:1px;
+    margin-right:6px;
 }
 .udsa-title{
-    font-family: 'Katibeh', serif;
-    font-size: 40px;
-    font-weight: 400;
-    color: #1a355c;
-    letter-spacing: 1px;
+    font-family:'Katibeh', serif;
+    font-size:40px;
+    font-weight:400;
+    color:#1a355c;
+    letter-spacing:1px;
 }
 
 /* ================= NAV MENU ================= */
@@ -212,7 +140,7 @@ body{
 .menu > a.active { color:#79787F !important; }
 .menu > a::after,
 .menu > .menu-info > a::after{
-    content: "";
+    content:"";
     position:absolute;
     left:0;
     bottom:0;
@@ -295,9 +223,8 @@ body{
 .info-dropdown a:hover{ color:#79787F; }
 
 /* ========== MAIN: CAREER CENTER ========== */
-
 .main-panel{
-    background:#f1ebc4; /* kuning lembut */
+    background:#f1ebc4;
     min-height:60vh;
 }
 .wrapper{
@@ -342,7 +269,7 @@ body{
     font-size:34px;
 }
 .career-text-title{
-    font-family:"poppins", sans-serif;
+    font-family:"Poppins", sans-serif;
     font-size:22px;
     font-weight:400;
     margin-bottom:4px;
@@ -376,12 +303,9 @@ body{
     font-size:18px;
     line-height:1.7;
 }
-.career-content li{
-    margin-bottom:14px;
-}
+.career-content li{ margin-bottom:14px; }
 
 /* ============= FOOTER ============= */
-
 .footer-full{
     background:#CBC9D3;
     padding:12px 0;
@@ -395,61 +319,37 @@ body{
     align-items:flex-start;
     font-family:"Gantari", sans-serif;
 }
-
-.footer-left{
-    display:flex;
-    gap:10px;
-}
-.footer-logo{
-    height:65px;
-}
-.footer-address{
-    line-height:1.2;
-}
+.footer-left{ display:flex; gap:10px; }
+.footer-logo{ height:65px; }
+.footer-address{ line-height:1.2; }
 .footer-address b{
     color:#1a355c;
     font-size:22px;
     font-family:Georgia, serif;
 }
-
-.footer-right {
-    display: grid;
-    grid-template-columns: 0.5fr 0.5fr; /* dua kolom */
-    grid-template-rows: auto auto; /* dua baris */
-    gap: 20px 18px; /* jarak antar item: vertical | horizontal */
-    align-items: center;
+.footer-right{
+    display:grid;
+    grid-template-columns:0.5fr 0.5fr;
+    grid-template-rows:auto auto;
+    gap:20px 18px;
+    align-items:center;
 }
-
-.footer-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.footer-icon {
-    width: 22px;  /* ukuran icon sesuai foto */
-    height: auto;
-}
+.footer-item{ display:flex; align-items:center; gap:10px; }
+.footer-icon{ width:22px; height:auto; }
 
 /* ========== SEARCH OVERLAY (SETENGAH LAYAR) ========== */
-.search-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.25);
-    display: none;
-    justify-content: flex-start;
-    align-items: stretch;
-    z-index: 9999;
+.search-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.25);
+    display:none;
+    justify-content:flex-start;
+    align-items:stretch;
+    z-index:9999;
     animation: fadeIn .3s ease;
 }
-
-@keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
-}
-
-/* panel abu-abu 50% tinggi layar, di atas, full width */
-.search-panel {
+@keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+.search-panel{
     background:#f5f5f5;
     width:100%;
     height:50vh;
@@ -459,10 +359,8 @@ body{
     padding-top:80px;
     position:relative;
 }
-
-/* tombol X bulat di pojok kanan atas panel */
-.search-close {
-    position: absolute;
+.search-close{
+    position:absolute;
     top:25px;
     right:40px;
     font-size:30px;
@@ -476,77 +374,55 @@ body{
     justify-content:center;
     align-items:center;
 }
-
-.search-container {
-    width: 70%;
-    max-width: 900px;
+.search-container{ width:70%; max-width:900px; }
+.search-input-wrapper{ position:relative; width:100%; }
+.search-input{
+    width:100%;
+    border:none;
+    border-bottom:2px solid #333;
+    background:transparent;
+    font-size:28px;
+    font-family:"Karma", serif;
+    padding:10px 0;
+    outline:none;
 }
-
-.search-container label {
-    font-size: 32px;
-    font-family: "Karma", serif;
-    margin-bottom: 12px;
-    display: block;
+.search-icon{
+    position:absolute;
+    right:10px;
+    top:8px;
+    font-size:30px;
+    cursor:pointer;
 }
-
-.search-input-wrapper {
-    position: relative;
-    width: 100%;
+.search-button{
+    margin-top:40px;
+    background:#7a6b23;
+    color:#fff;
+    border:none;
+    padding:14px 60px;
+    font-size:20px;
+    font-family:"Karma", serif;
+    border-radius:28px;
+    cursor:pointer;
+    transition:.3s ease;
 }
-
-.search-input {
-    width: 100%;
-    border: none;
-    border-bottom: 2px solid #333;
-    background: transparent;
-    font-size: 28px;
-    font-family: "Karma", serif;
-    padding: 10px 0;
-    outline: none;
-}
-
-.search-icon {
-    position: absolute;
-    right: 10px;
-    top: 8px;
-    font-size: 30px;
-    cursor: pointer;
-}
-
-.search-button {
-    margin-top: 40px;
-    background: #7a6b23;
-    color: #fff;
-    border: none;
-    padding: 14px 60px;
-    font-size: 20px;
-    font-family: "Karma", serif;
-    border-radius: 28px;
-    cursor: pointer;
-    transition: .3s ease;
-}
-.search-button:hover { background: #64581d; }
-
-/* HASIL PENCARIAN DI BAWAH INPUT */
+.search-button:hover{ background:#64581d; }
 .search-results{
-    margin-top: 28px;
-    max-height: 35vh;
-    overflow-y: auto;
-    font-family: "Jaldi", sans-serif;
-    font-size: 16px;
+    margin-top:28px;
+    max-height:35vh;
+    overflow-y:auto;
+    font-family:"Jaldi", sans-serif;
+    font-size:16px;
 }
 .search-result-item{
-    padding: 10px 0;
-    border-bottom: 1px solid #ccc;
-    cursor: pointer;
+    padding:10px 0;
+    border-bottom:1px solid #ccc;
+    cursor:pointer;
 }
-.search-result-item-title{
-    font-weight: 700;
-}
+.search-result-item-title{ font-weight:700; }
 .search-noresult{
-    color: #777;
-    font-style: italic;
-    margin-top: 10px;
+    color:#777;
+    font-style:italic;
+    margin-top:10px;
 }
 </style>
 </head>
@@ -558,23 +434,19 @@ body{
         <div class="topbar-left">
             <a href="home.php">www.udsa.ac.id</a>
             <a href="berita.php">Berita</a>
-            <a href="career.php">Career</a>
+            <a href="career.php" class="active">Career</a>
             <a href="#" onclick="openSearch();return false;">Search</a>
         </div>
         <div class="topbar-right">
-
             <div class="topbar-item">
-                <img src="assets/icons/location.png" class="topbar-icon">
+                <img src="assets/icons/location.png" class="topbar-icon" alt="">
                 <span>JL. Lingkar Salatiga - Pulutan</span>
             </div>
-
             <div class="topbar-item">
-                <img src="assets/icons/phone.png" class="topbar-icon">
+                <img src="assets/icons/phone.png" class="topbar-icon" alt="">
                 <span>(+62) 0123456</span>
             </div>
-
         </div>
-
     </div>
 </div>
 
@@ -583,7 +455,7 @@ body{
     <div class="nav-container">
 
         <div class="brand">
-            <img src="assets/images/logo.png">
+            <img src="assets/images/logo.png" alt="">
             <div>
                 <span class="pmb-title">PMB</span>
                 <span class="udsa-title">UDSA</span>
@@ -595,17 +467,19 @@ body{
             <a href="prodi.php">Program Studi</a>
             <a href="biaya.php">Biaya</a>
 
-            <!-- MENU INFO DROPDOWN -->
             <div class="menu-info">
                 <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
                 <div class="info-dropdown">
-                    <a href="info.php.php">Jadwal Penerimaan</a>
+                    <!-- ✅ FIX: typo info.php.php -->
+                    <a href="info.php">Jadwal Penerimaan</a>
                     <a href="pengumuman.php">Pengumuman</a>
                 </div>
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
+
+            <!-- ✅ INJEK: kartu peserta dinamis -->
+            <a href="<?php echo htmlspecialchars($kartuHref); ?>" class="login">Kartu Peserta</a>
         </div>
     </div>
 </div>
@@ -614,17 +488,13 @@ body{
 <div class="main-panel">
     <div class="wrapper">
 
-        <!-- HERO TITLE -->
         <section class="career-hero">
             <h1>Career Center UDSA</h1>
         </section>
 
-        <!-- STRIP 3 LAYANAN -->
         <section class="career-strip">
             <div class="career-item">
-                <div class="career-icon">
-                    <span>📊</span>
-                </div>
+                <div class="career-icon"><span>📊</span></div>
                 <div>
                     <div class="career-text-title">Tracer Study</div>
                     <div class="career-text-link">Read More</div>
@@ -632,9 +502,7 @@ body{
             </div>
 
             <div class="career-item">
-                <div class="career-icon">
-                    <span>📈</span>
-                </div>
+                <div class="career-icon"><span>📈</span></div>
                 <div>
                     <div class="career-text-title">E-Legalisir</div>
                     <div class="career-text-link">Read More</div>
@@ -642,9 +510,7 @@ body{
             </div>
 
             <div class="career-item">
-                <div class="career-icon">
-                    <span>🎓</span>
-                </div>
+                <div class="career-icon"><span>🎓</span></div>
                 <div>
                     <div class="career-text-title">Job Fair UDSA</div>
                     <div class="career-text-link">Read More</div>
@@ -652,7 +518,6 @@ body{
             </div>
         </section>
 
-        <!-- KONTEN PENJELASAN -->
         <section class="career-content">
             <h2>Career Center UDSA</h2>
             <p>
@@ -682,9 +547,8 @@ body{
 <!-- FOOTER -->
 <div class="footer-full">
     <div class="footer-container">
-
         <div class="footer-left">
-            <img src="assets/images/logo.png" class="footer-logo">
+            <img src="assets/images/logo.png" class="footer-logo" alt="">
             <div class="footer-address">
                 <b>UDSA</b><br>
                 Jln. Lingkar Salatiga KM 2 Pulutan<br>
@@ -693,30 +557,23 @@ body{
         </div>
 
         <div class="footer-right">
-
             <div class="footer-item">
-                <img src="assets/icons/ig.png" class="footer-icon">
+                <img src="assets/icons/ig.png" class="footer-icon" alt="">
                 <span>@udsa_salatiga</span>
             </div>
-
             <div class="footer-item">
-                <img src="assets/icons/yt.png" class="footer-icon">
+                <img src="assets/icons/yt.png" class="footer-icon" alt="">
                 <span>UDSA SALATIGA</span>
             </div>
-
             <div class="footer-item">
-                <img src="assets/icons/telp.png" class="footer-icon">
+                <img src="assets/icons/telp.png" class="footer-icon" alt="">
                 <span>(+62) 0123456</span>
             </div>
-
             <div class="footer-item">
-                <img src="assets/icons/mail.png" class="footer-icon">
+                <img src="assets/icons/mail.png" class="footer-icon" alt="">
                 <span>pmb@udsasalatiga.ac.id</span>
             </div>
-
         </div>
-
-
     </div>
 </div>
 
@@ -732,7 +589,6 @@ body{
             </div>
 
             <button class="search-button" onclick="doSearch()">Search</button>
-
             <div id="searchResults" class="search-results"></div>
         </div>
     </div>
@@ -814,7 +670,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-/* opsional: tekan ESC untuk tutup search */
+// ESC untuk tutup
 document.addEventListener("keydown", (e) => {
     if(e.key === "Escape"){
         const overlay = document.getElementById("searchOverlay");

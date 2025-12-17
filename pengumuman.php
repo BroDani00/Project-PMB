@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+/* INJEK: link kartu peserta dinamis */
+$kartuHref = "kartu.php";
+if (!empty($_SESSION['last_pendaftaran_id'])) {
+    $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -467,10 +476,10 @@ body{
     font-size: 20px;
     font-family: "Karma", serif;
     border-radius: 28px;
-    cursor: pointer;
-    transition: .3s ease;
+    cursor:pointer;
+    transition:.3s ease;
 }
-.search-button:hover { background: #64581d; }
+.search-button:hover { background:#64581d; }
 
 /* HASIL PENCARIAN DI BAWAH INPUT */
 .search-results{
@@ -485,13 +494,11 @@ body{
     border-bottom: 1px solid #ccc;
     cursor: pointer;
 }
-.search-result-item-title{
-    font-weight: 700;
-}
+.search-result-item-title{ font-weight:700; }
 .search-noresult{
-    color: #777;
-    font-style: italic;
-    margin-top: 10px;
+    color:#777;
+    font-style:italic;
+    margin-top:10px;
 }
 </style>
 </head>
@@ -548,7 +555,9 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="kartu.php" class="login">Kartu Peserta</a>
+
+            <!-- ✅ INJEK: kartu peserta dinamis -->
+            <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
         </div>
     </div>
 </div>
