@@ -562,7 +562,7 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
+            <a href="kartu.php" class="login">Kartu Peserta</a>
         </div>
     </div>
 </div>

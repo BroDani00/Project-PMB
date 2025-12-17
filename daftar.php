@@ -535,7 +535,7 @@ body{
             </div>
 
             <a href="daftar.php" class="active">Daftar</a>
-            <a href="login.php" class="login">Login</a>
+            <a href="kartu.php" class="login">Kartu Peserta</a>
         </div>
     </div>
 </div>
@@ -579,7 +579,7 @@ body{
                             <b>Pengumuman :</b> 28 Mei 2026
                         </div>
                         <div class="jalur-footer">
-                            <a href=snbp.php">
+                            <a href="snbp.php">
                                 <button class="btn-jalur">KLIK DISINI</button>
                             </a>>
                         </div>
