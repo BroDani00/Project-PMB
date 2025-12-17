@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 17, 2025 at 01:27 AM
+-- Generation Time: Dec 17, 2025 at 10:46 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -86,29 +86,45 @@ INSERT INTO `laporan_bulanan_prodi` (`id`, `laporan_bulanan_id`, `nama_prodi`, `
 
 CREATE TABLE `pendaftaran_snbp` (
   `id` bigint(20) UNSIGNED NOT NULL,
-  `nama` varchar(150) NOT NULL,
+  `nama` varchar(120) NOT NULL,
   `nisn` varchar(20) NOT NULL,
-  `email` varchar(150) NOT NULL,
-  `hp` varchar(30) NOT NULL,
+  `email` varchar(120) NOT NULL,
+  `hp` varchar(25) NOT NULL,
   `tgllahir` date DEFAULT NULL,
-  `tempatlahir` varchar(100) DEFAULT NULL,
-  `asal` varchar(150) DEFAULT NULL,
-  `provinsi` varchar(100) DEFAULT NULL,
-  `kabupaten` varchar(100) DEFAULT NULL,
-  `kecamatan` varchar(100) DEFAULT NULL,
-  `alamat` varchar(255) DEFAULT NULL,
-  `prodi1` varchar(120) DEFAULT NULL,
-  `prodi2` varchar(120) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `tempatlahir` varchar(120) NOT NULL,
+  `asal` varchar(150) NOT NULL,
+  `foto` varchar(255) DEFAULT NULL,
+  `provinsi` varchar(120) NOT NULL,
+  `kabupaten` varchar(120) NOT NULL,
+  `kecamatan` varchar(120) NOT NULL,
+  `alamat` varchar(255) NOT NULL,
+  `prodi1` varchar(120) NOT NULL,
+  `prodi2` varchar(120) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `prodi`
+--
+
+CREATE TABLE `prodi` (
+  `id` smallint(5) UNSIGNED NOT NULL,
+  `nama` varchar(120) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `pendaftaran_snbp`
+-- Dumping data for table `prodi`
 --
 
-INSERT INTO `pendaftaran_snbp` (`id`, `nama`, `nisn`, `email`, `hp`, `tgllahir`, `tempatlahir`, `asal`, `provinsi`, `kabupaten`, `kecamatan`, `alamat`, `prodi1`, `prodi2`, `created_at`, `updated_at`) VALUES
-(1, 'ANA RISKA RAFAELA', '0987654321', 'wwwww@gmail.com', '089767647678', NULL, 'Semarang', 'SMA NEGERI 1 SALATIGA', 'JAWA TENGAH', 'KABUPATEN SEMARANG', 'GETASAN', 'mana aja', 'S1 Teknologi Informasi', 'S1 Sistem Informasi', '2025-12-17 00:02:32', '2025-12-17 00:02:32');
+INSERT INTO `prodi` (`id`, `nama`) VALUES
+(4, 'Biologi'),
+(3, 'Data Science'),
+(6, 'Fisika'),
+(5, 'Matematika'),
+(2, 'Sistem Informasi'),
+(1, 'Teknik Informatika');
 
 -- --------------------------------------------------------
 
@@ -157,10 +173,17 @@ ALTER TABLE `laporan_bulanan_prodi`
 --
 ALTER TABLE `pendaftaran_snbp`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uq_nisn` (`nisn`),
-  ADD UNIQUE KEY `uq_email` (`email`),
-  ADD KEY `idx_hp` (`hp`),
-  ADD KEY `idx_created_at` (`created_at`);
+  ADD KEY `idx_nisn` (`nisn`),
+  ADD KEY `idx_email` (`email`),
+  ADD KEY `idx_prodi1` (`prodi1`),
+  ADD KEY `idx_prodi2` (`prodi2`);
+
+--
+-- Indexes for table `prodi`
+--
+ALTER TABLE `prodi`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `nama` (`nama`);
 
 --
 -- Indexes for table `reviews`
@@ -188,13 +211,19 @@ ALTER TABLE `laporan_bulanan_prodi`
 -- AUTO_INCREMENT for table `pendaftaran_snbp`
 --
 ALTER TABLE `pendaftaran_snbp`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `prodi`
+--
+ALTER TABLE `prodi`
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
