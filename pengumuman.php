@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Uang Kuliah Tunggal - PMB UDSA</title>
+<title>Pengumuman - PMB UDSA</title>
 
 <!-- GOOGLE FONTS -->
 <link href="https://fonts.googleapis.com/css2?family=Katibeh&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Miltonian+Tattoo&family=Gravitas+One&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Jaldi:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Gantari:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 /* RESET */
@@ -62,19 +61,16 @@ body{
     display: flex;
     gap: 32px;
 }
-
 .topbar-item {
     display: flex;
     align-items: center;
     gap: 6px;
 }
-
 .topbar-icon {
     width: 16px;
     height: 16px;
     opacity: 0.85;
 }
-
 
 /* ================= NAVBAR ================= */
 
@@ -96,7 +92,7 @@ body{
 }
 .brand img{ height:54px; }
 
-/* PMB pakai Gravitas One, UDSA pakai Katibeh */
+/* PMB + UDSA */
 .pmb-title{
     font-family: 'Gravitas One', serif;
     font-size: 30px;
@@ -113,13 +109,11 @@ body{
     letter-spacing: 1px;
 }
 
-/* ================= NAV MENU (UNDERLINE KLASIK) ================= */
+/* ================= NAV MENU ================= */
 .menu{
     display:flex;
     align-items:center;
 }
-
-/* menu utama */
 .menu > a,
 .menu > .menu-info > a{
     position:relative;
@@ -136,7 +130,6 @@ body{
 .menu > a:hover,
 .menu > .menu-info > a:hover{ color:#79787F; }
 
-/* underline seperti awal (melebar dari kiri) */
 .menu > a.active { color:#79787F !important; }
 .menu > a::after,
 .menu > .menu-info > a::after{
@@ -162,7 +155,7 @@ body{
     border:2px solid var(--login-btn);
     padding:1px 28px;
     border-radius:15px;
-    color:#ffffff !important; /* FIX: sebelumnya #fffff */
+    color:#ffffff !important;
     font-size:20px;
     font-weight:400;
     margin-left:24px;
@@ -171,14 +164,11 @@ body{
 .menu a.login:hover{ border-color:#cc0000 !important; }
 
 /* ================= DROPDOWN INFO ================= */
-/* WRAPPER */
 .menu-info{
   position:relative;
   display:flex;
   align-items:center;
 }
-
-/* LINK INFO (TEKS + PANAH SEJAJAR) */
 .menu-info > a.info-link{
   display:inline-flex;
   align-items:center;
@@ -186,15 +176,12 @@ body{
   line-height:1;
   font-weight:400;
 }
-
-/* PANAH ▼ */
 .menu-info > a.info-link .caret{
   display:inline-block;
   font-size:12px;
   line-height:1;
   transform: translateY(-3px);
 }
-
 .info-dropdown{
     position:absolute;
     top:100%;
@@ -228,97 +215,118 @@ body{
 .info-dropdown a::after{ display:none !important; }
 .info-dropdown a:hover{ color:#79787F; }
 
-/* ============= MAIN CONTENT ============= */
+/* ============= MAIN ============= */
 
-/* HERO */
-.ukt-hero{
-    background:#807222;
-    padding:26px 20px;
+.main-panel{
+    background:#f6f2d9;
+}
+
+/* === HERO PENGUMUMAN === */
+.pengumuman-hero{
+    background:#efe6bd;
+    padding:70px 20px 60px;
     text-align:center;
 }
-.ukt-hero h1{
+.pengumuman-hero h1{
+    font-family:"Katibeh", serif;
+    font-size:60px;
     font-weight:400;
-    color:#ffffff;
-    font-size:42px;
-    font-family:"Poppins", serif;
     letter-spacing:1px;
+    color:#1b1308;
 }
 
-/* DESC */
-.ukt-desc{
-    text-align:center;
-    padding:26px 40px 12px;
+/* === KARTU PENGUMUMAN === */
+.pengumuman-wrapper{
+    max-width:1200px;
+    margin:0 auto 80px;
+    padding:0 40px;
+    display:flex;
+    justify-content:space-between;
+    gap:40px;
 }
-.ukt-desc p{
-    max-width:900px;
-    margin:auto;
-    font-size:16px;
-    font-family:"Poppins", serif;
-    line-height:1.6;
-}
-
-/* WRAPPER */
-.ukt-wrapper{
-    max-width:1250px;
-    margin:0 auto 60px;
-    padding:0 20px;
+.pengumuman-card{
+    flex:1;
+    background:#f7e7a9;
+    box-shadow:0 10px 20px rgba(0,0,0,0.18);
+    display:flex;
+    flex-direction:column;
+    height:100%;
 }
 
-/* SEARCH BOX */
-.ukt-toolbar{
+/* HEADER CARD – BACKGROUND */
+.pengumuman-card-top{
+    position: relative;
+    padding: 26px;
+    min-height: 150px;
     display:flex;
     justify-content:flex-end;
-    margin-bottom:10px;
-}
-.ukt-search{
-    display:flex;
     align-items:center;
-    background:#f5ecd0;
-    border-radius:18px;
-    padding:6px 14px 6px 20px;
+    background-size: cover; /* atau 'contain' */
+    background-repeat: no-repeat;
+    background-position: center;
 }
-.ukt-search input{
-    border:none;
-    background:transparent;
-    font-size:12px;
-    width:150px;
+.pengumuman-card-top-text{
+    position: relative;
+    z-index: 1;
+    font-family:"Poppins", sans-serif;
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    line-height:1.6;
+    text-align:right;
 }
-.ukt-search button{
-    border:none;
-    background:#b5913d;
-    color:white;
-    width:34px;
-    height:34px;
-    border-radius:50%;
-    cursor:pointer;
+.card-bg-1{
+    background-image: url("assets/images/pengumuman-illustrasi.png");
+}
+.card-bg-2{
+    background-image: url("assets/images/pengumuman-illustrasi.png");
+}
+.card-bg-3{
+    background-image: url("assets/images/pengumuman-illustrasi.png");
 }
 
-/* TABLE */
-.ukt-table{
-    width:100%;
-    border-collapse:collapse;
-    background:#fbf7e7;
-    font-family:"Poppins", serif;
+/* BODY CARD */
+.pengumuman-card-body{
+    background:#f7e7a9;
+    padding:28px 30px 26px;
+    display:flex;
+    flex-direction:column;
+    gap:26px;
+    font-family:"Poppins", sans-serif;
     font-size:17px;
+    line-height:1.7;
+    flex-grow:1;          /* isi body fleksibel */
+    padding-bottom:40px;  /* ruang bawah untuk tombol */
 }
-.ukt-table th{
-    background:#7e7028;
-    color:#fff;
-    padding:15px;
-    border:1px solid #65551a;
-    font-weight:400;
+.pengumuman-card-body p{
+    margin:0;
+    min-height:150px;      /* tinggi teks seragam antar card */
 }
-.ukt-table td{
-    padding:14px;
-    border:1px solid #d2c7a2;
+
+/* READ MORE */
+.pengumuman-card-body .read-more{
+    margin-top:auto;      /* dorong ke bawah */
+    padding-bottom:10px;
+    align-self:center;
+    text-decoration:none;
+    font-family:"Poppins", sans-serif;
+    font-size:16px;
+    font-weight:500;
+    color:#14a7aa;
 }
-.ukt-fakultas-row td{
-    background:#f0e5bf;
-    font-weight:400;
-    font-size:18px;
-}
-.ukt-no{
-    font-weight:700;
+
+/* responsive cards */
+@media (max-width:900px){
+    .pengumuman-hero{
+        padding:50px 16px 40px;
+    }
+    .pengumuman-hero h1{
+        font-size:40px;
+    }
+    .pengumuman-wrapper{
+        flex-direction:column;
+        padding:0 20px 40px;
+    }
 }
 
 /* ============= FOOTER ============= */
@@ -336,7 +344,6 @@ body{
     align-items:flex-start;
     font-family:"Gantari", sans-serif;
 }
-
 .footer-left{
     display:flex;
     gap:10px;
@@ -352,27 +359,25 @@ body{
     font-size:22px;
     font-family:Georgia, serif;
 }
-
 .footer-right {
     display: grid;
-    grid-template-columns: 0.5fr 0.5fr; /* dua kolom */
-    grid-template-rows: auto auto; /* dua baris */
-    gap: 20px 18px; /* jarak antar item: vertical | horizontal */
+    grid-template-columns: 0.5fr 0.5fr;
+    grid-template-rows: auto auto;
+    gap: 20px 18px;
     align-items: center;
 }
-
 .footer-item {
     display: flex;
     align-items: center;
     gap: 10px;
 }
-
 .footer-icon {
-    width: 22px;  /* ukuran icon sesuai foto */
+    width: 22px;
     height: auto;
 }
-/* ================= SEARCH OVERLAY (SETENGAH HALAMAN) ================= */
-.search-overlay{
+
+/* ================= SEARCH OVERLAY ================= */
+.search-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.25);
@@ -388,7 +393,7 @@ body{
     to {opacity: 1;}
 }
 
-/* ================= SEARCH PANEL (SETENGAH HALAMAN) ================= */
+/* panel abu-abu 50% tinggi layar, di atas, full width */
 .search-panel {
     background:#f5f5f5;
     width:100%;
@@ -400,7 +405,7 @@ body{
     position:relative;
 }
 
-/* tombol X di pojok kanan atas panel */
+/* tombol X bulat di pojok kanan atas panel */
 .search-close {
     position: absolute;
     top:25px;
@@ -467,7 +472,7 @@ body{
 }
 .search-button:hover { background: #64581d; }
 
-/* ================= SEARCH RESULTS ================= */
+/* HASIL PENCARIAN DI BAWAH INPUT */
 .search-results{
     margin-top: 28px;
     max-height: 35vh;
@@ -480,7 +485,9 @@ body{
     border-bottom: 1px solid #ccc;
     cursor: pointer;
 }
-.search-result-item-title{ font-weight: 700; }
+.search-result-item-title{
+    font-weight: 700;
+}
 .search-noresult{
     color: #777;
     font-style: italic;
@@ -490,7 +497,7 @@ body{
 </head>
 <body>
 
-<!-- TOPBAR (UPDATED) -->
+<!-- TOPBAR -->
 <div class="topbar">
     <div class="topbar-content">
         <div class="topbar-left">
@@ -500,28 +507,23 @@ body{
             <a href="#" onclick="openSearch();return false;">Search</a>
         </div>
         <div class="topbar-right">
-
             <div class="topbar-item">
-                <img src="assets/icons/location.png" class="topbar-icon">
+                <img src="assets/icons/location.png" class="topbar-icon" alt="">
                 <span>JL. Lingkar Salatiga - Pulutan</span>
             </div>
-
             <div class="topbar-item">
-                <img src="assets/icons/phone.png" class="topbar-icon">
+                <img src="assets/icons/phone.png" class="topbar-icon" alt="">
                 <span>(+62) 0123456</span>
             </div>
-
         </div>
-
     </div>
 </div>
 
 <!-- NAVBAR -->
 <div class="navbar-full">
     <div class="nav-container">
-
         <div class="brand">
-            <img src="assets/images/logo.png">
+            <img src="assets/images/logo.png" alt="Logo UDSA">
             <div>
                 <span class="pmb-title">PMB</span>
                 <span class="udsa-title">UDSA</span>
@@ -531,13 +533,16 @@ body{
         <div class="menu">
             <a href="home.php">Home</a>
             <a href="prodi.php">Program Studi</a>
-            <a href="biaya.php" class="active">Biaya</a>
+            <a href="biaya.php">Biaya</a>
 
             <!-- MENU INFO DROPDOWN -->
             <div class="menu-info">
-                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
+                <a href="info.php" class="info-link">
+                    <span class="info-text">Info</span>
+                    <span class="caret">⌄</span>
+                </a>
                 <div class="info-dropdown">
-                    <a href="info.php">Jadwal Penerimaan</a>
+                    <a href="info.php">Jadwal Pemenerimaan</a>
                     <a href="pengumuman.php">Pengumuman</a>
                 </div>
             </div>
@@ -548,129 +553,84 @@ body{
     </div>
 </div>
 
-<!-- HERO -->
-<section class="ukt-hero">
-    <h1>UANG KULIAH TUNGGAL</h1>
-</section>
+<!-- MAIN -->
+<div class="main-panel">
 
-<!-- DESKRIPSI -->
-<section class="ukt-desc">
-    <p>
-        Sistem biaya studi sarjana di Universitas ... umumnya terdiri dari komponen utama yang dibayarkan
-        pada awal pendaftaran dan setiap semester, salah satunya dihitung dari jumlah satuan kredit semester (SKS)
-    </p>
-</section>
+    <!-- HERO TITLE -->
+    <section class="pengumuman-hero">
+        <h1>Pengumuman</h1>
+    </section>
 
-<!-- TABEL -->
-<div class="ukt-wrapper">
-
-    <div class="ukt-toolbar">
-        <div class="ukt-search">
-            <input id="tableSearchInput" type="text" placeholder="Search program studi...">
-            <button type="button" id="tableSearchBtn">&#128269;</button>
+    <!-- KARTU PENGUMUMAN -->
+    <div class="pengumuman-wrapper">
+        <!-- CARD 1 -->
+        <div class="pengumuman-card">
+            <div class="pengumuman-card-top card-bg-1">
+                <div class="pengumuman-card-top-text">
+                    PENGUMUMAN<br>
+                    PENERIMAAN<br>
+                    MAHASISWA<br>
+                    BARU<br>
+                    UDSA SALATIGA
+                </div>
+            </div>
+            <div class="pengumuman-card-body">
+                <p>
+                    Registrasi Ulang Calon Mahasiswa Baru Jalur Undangan Tahap 2
+                    Tahun 2026 UDSA Salatiga
+                </p>
+                <a href="daftar.php" class="read-more">Read More &gt;&gt;&gt;</a>
+            </div>
         </div>
 
+        <!-- CARD 2 -->
+        <div class="pengumuman-card">
+            <div class="pengumuman-card-top card-bg-2">
+                <div class="pengumuman-card-top-text">
+                    PENGUMUMAN<br>
+                    PENERIMAAN<br>
+                    MAHASISWA<br>
+                    BARU<br>
+                    UDSA SALATIGA
+                </div>
+            </div>
+            <div class="pengumuman-card-body">
+                <p>
+                    Registrasi Ulang Calon Mahasiswa Baru Jalur Mandiri Tahun 2026
+                    UDSA Salatiga
+                </p>
+                <a href="daftar.php" class="read-more">Read More &gt;&gt;&gt;</a>
+            </div>
+        </div>
+
+        <!-- CARD 3 -->
+        <div class="pengumuman-card">
+            <div class="pengumuman-card-top card-bg-3">
+                <div class="pengumuman-card-top-text">
+                    PENGUMUMAN<br>
+                    PENERIMAAN<br>
+                    MAHASISWA<br>
+                    BARU<br>
+                    UDSA SALATIGA
+                </div>
+            </div>
+            <div class="pengumuman-card-body">
+                <p>
+                    Registrasi Ulang Calon Mahasiswa Baru Jalur UM-PTKIN
+                    Tahun 2026 UDSA Salatiga
+                </p>
+                <a href="daftar.php" class="read-more">Read More &gt;&gt;&gt;</a>
+            </div>
+        </div>
     </div>
-
-    <table class="ukt-table">
-        <thead>
-            <tr>
-                <th>No.</th>
-                <th>Fakultas/ Program Studi</th>
-                <th>gol I</th>
-                <th>gol II</th>
-                <th>gol III</th>
-                <th>gol IV</th>
-                <th>gol V</th>
-            </tr>
-        </thead>
-        <tbody>
-
-            <tr class="ukt-fakultas-row">
-                <td colspan="7">Fakultas Sains &amp; Teknologi</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">1.</td>
-                <td>Teknologi Informasi</td>
-                <td>500.000</td>
-                <td>1.000.000</td>
-                <td>2.000.000</td>
-                <td>3.000.000</td>
-                <td>4.000.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">2.</td>
-                <td>Sistem Informasi</td>
-                <td>500.000</td>
-                <td>1.000.000</td>
-                <td>2.000.000</td>
-                <td>3.000.000</td>
-                <td>4.000.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">3.</td>
-                <td>Ilmu Komputer</td>
-                <td>500.000</td>
-                <td>1.200.000</td>
-                <td>2.500.000</td>
-                <td>3.400.000</td>
-                <td>4.000.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">4.</td>
-                <td>Data Science</td>
-                <td>500.000</td>
-                <td>1.200.000</td>
-                <td>2.500.000</td>
-                <td>3.400.000</td>
-                <td>4.350.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">5.</td>
-                <td>Biologi</td>
-                <td>500.000</td>
-                <td>1.500.000</td>
-                <td>2.500.000</td>
-                <td>3.400.000</td>
-                <td>4.350.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">6.</td>
-                <td>Matematika</td>
-                <td>650.000</td>
-                <td>1.500.000</td>
-                <td>2.700.000</td>
-                <td>3.700.000</td>
-                <td>4.500.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">7.</td>
-                <td>Fisika</td>
-                <td>650.000</td>
-                <td>1.500.000</td>
-                <td>2.700.000</td>
-                <td>3.700.000</td>
-                <td>4.500.000</td>
-            </tr>
-
-        </tbody>
-    </table>
 
 </div>
 
-<!-- FOOTER (ORIGINAL RESTORED) -->
- <div class="footer-full">
+<!-- FOOTER -->
+<div class="footer-full">
     <div class="footer-container">
-
         <div class="footer-left">
-            <img src="assets/images/logo.png" class="footer-logo">
+            <img src="assets/images/logo.png" class="footer-logo" alt="Logo UDSA">
             <div class="footer-address">
                 <b>UDSA</b><br>
                 Jln. Lingkar Salatiga KM 2 Pulutan<br>
@@ -679,47 +639,39 @@ body{
         </div>
 
         <div class="footer-right">
-
             <div class="footer-item">
-                <img src="assets/icons/ig.png" class="footer-icon">
+                <img src="assets/icons/ig.png" class="footer-icon" alt="">
                 <span>@udsa_salatiga</span>
             </div>
-
             <div class="footer-item">
-                <img src="assets/icons/yt.png" class="footer-icon">
+                <img src="assets/icons/yt.png" class="footer-icon" alt="">
                 <span>UDSA SALATIGA</span>
             </div>
-
             <div class="footer-item">
-                <img src="assets/icons/telp.png" class="footer-icon">
+                <img src="assets/icons/telp.png" class="footer-icon" alt="">
                 <span>(+62) 0123456</span>
             </div>
-
             <div class="footer-item">
-                <img src="assets/icons/mail.png" class="footer-icon">
+                <img src="assets/icons/mail.png" class="footer-icon" alt="">
                 <span>pmb@udsasalatiga.ac.id</span>
             </div>
-
         </div>
-
-
     </div>
 </div>
 
-<!-- SEARCH OVERLAY (agar tombol Search topbar berfungsi) -->
+<!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay">
     <div class="search-panel">
         <div class="search-close" onclick="closeSearch()">X</div>
 
         <div class="search-container">
             <div class="search-input-wrapper">
-                <input id="searchInput" type="text" class="search-input" placeholder="Type your search" />
+                <input id="searchInput" type="text" class="search-input" placeholder="Type your search">
                 <span class="search-icon" onclick="doSearch()">🔍</span>
             </div>
 
             <button class="search-button" onclick="doSearch()">Search</button>
 
-            <!-- HASIL PENCARIAN DI BAWAH INPUT -->
             <div id="searchResults" class="search-results"></div>
         </div>
     </div>
@@ -749,104 +701,65 @@ function openSearch(){
 }
 
 function closeSearch(){
-    document.getElementById("searchOverlay").style.display = "none";
-    document.getElementById("searchResults").innerHTML = "";
-    document.getElementById("searchInput").value = "";
+    const overlay = document.getElementById("searchOverlay");
+    const input = document.getElementById("searchInput");
+    const resultBox = document.getElementById("searchResults");
+    overlay.style.display = "none";
+    resultBox.innerHTML = "";
+    if (input) input.value = "";
 }
 
 /* FUNCTION SEARCH NAVBAR PAGES */
-/* ================== SEARCH UNTUK ISI TABEL UKT ================== */
-(function initTableSearch(){
-  const input = document.getElementById("tableSearchInput");
-  const btn = document.getElementById("tableSearchBtn");
-  const table = document.querySelector(".ukt-table");
-  if(!input || !btn || !table) return;
+function doSearch(){
+    const input = document.getElementById("searchInput");
+    const keyword = (input.value || "").trim().toLowerCase();
+    const resultBox = document.getElementById("searchResults");
+    resultBox.innerHTML = "";
 
-  const tbody = table.tBodies[0];
-  const rows = Array.from(tbody.querySelectorAll("tr"));
-
-  function normalize(str){
-    return (str || "")
-      .toString()
-      .toLowerCase()
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  // ✅ fungsi untuk reset nomor otomatis
-  function renumberVisibleRows(){
-    let no = 1;
-    rows.forEach(row => {
-      const isFacultyRow = row.classList.contains("ukt-fakultas-row");
-      if(isFacultyRow) return;
-
-      if(row.style.display === "none") return;
-
-      const noCell = row.querySelector(".ukt-no");
-      if(noCell){
-        noCell.textContent = no + ".";
-        no++;
-      }
-    });
-  }
-
-  function applyFilter(){
-    const q = normalize(input.value);
-
-    // 1) Filter baris data (bukan baris fakultas)
-    rows.forEach(row => {
-      const isFacultyRow = row.classList.contains("ukt-fakultas-row");
-      if(isFacultyRow){
-        row.style.display = ""; // disesuaikan lagi di langkah 2
+    if(keyword === ""){
+        alert("Masukkan kata pencarian!");
         return;
-      }
-
-      const text = normalize(row.innerText);
-      row.style.display = (q === "" || text.includes(q)) ? "" : "none";
-    });
-
-    // 2) Sembunyikan judul fakultas kalau semua baris dibawahnya tidak ada yang tampil
-    let currentFacultyRow = null;
-    let anyVisibleUnderFaculty = false;
-
-    rows.forEach(row => {
-      const isFacultyRow = row.classList.contains("ukt-fakultas-row");
-
-      if(isFacultyRow){
-        if(currentFacultyRow){
-          currentFacultyRow.style.display = anyVisibleUnderFaculty ? "" : "none";
-        }
-        currentFacultyRow = row;
-        anyVisibleUnderFaculty = false;
-        return;
-      }
-
-      if(row.style.display !== "none"){
-        anyVisibleUnderFaculty = true;
-      }
-    });
-
-    if(currentFacultyRow){
-      currentFacultyRow.style.display = anyVisibleUnderFaculty ? "" : "none";
     }
 
-    // ✅ 3) setelah filter, reset nomor otomatis
-    renumberVisibleRows();
-  }
+    const results = NAV_PAGES.filter(page => {
+        const inTitle = page.title.toLowerCase().includes(keyword);
+        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+        return inTitle || inKeywords;
+    });
 
-  btn.addEventListener("click", applyFilter);
-  input.addEventListener("input", applyFilter);
-
-  input.addEventListener("keydown", (e) => {
-    if(e.key === "Enter"){
-      e.preventDefault();
-      applyFilter();
+    if(results.length === 0){
+        resultBox.innerHTML = '<div class="search-noresult">Halaman tidak ditemukan. Coba kata kunci lain.</div>';
+        return;
     }
-  });
 
-  // ✅ panggil sekali saat awal supaya nomor rapih
-  renumberVisibleRows();
-})();
+    results.forEach(page => {
+        const item = document.createElement("div");
+        item.className = "search-result-item";
+        item.onclick = () => { window.location.href = page.url; };
+        item.innerHTML = `<div class="search-result-item-title">${page.title}</div>`;
+        resultBox.appendChild(item);
+    });
+}
+
+// ENTER untuk search
+document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("searchInput");
+    if (input) {
+        input.addEventListener("keydown", function(e){
+            if(e.key === "Enter"){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+    }
+});
+/* opsional: tekan ESC untuk tutup search */
+document.addEventListener("keydown", (e) => {
+    if(e.key === "Escape"){
+        const overlay = document.getElementById("searchOverlay");
+        if(overlay && overlay.style.display === "flex") closeSearch();
+    }
+});
 </script>
 
 </body>

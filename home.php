@@ -1,3 +1,111 @@
+<?php
+// ======================= SETUP DATABASE & API ULASAN =======================
+$host = "localhost";
+$user = "root";           // ganti jika beda
+$pass = "";               // ganti jika ada password
+$db   = "pmb_udsa";       // pastikan database ini sudah ada
+
+$conn = @new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    // Kalau API yang dipanggil, balikin error text
+    if (isset($_GET['reviews_api'])) {
+        http_response_code(500);
+        echo "error: db connection failed - " . $conn->connect_error;
+        exit;
+    }
+}
+
+// Buat tabel reviews kalau belum ada
+$conn->query("
+    CREATE TABLE IF NOT EXISTS reviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(50) NOT NULL,
+        rating INT NOT NULL,
+        review_text TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        likes INT DEFAULT 0,
+        dislikes INT DEFAULT 0
+    )
+");
+
+// ======================= API HANDLER (AJAX) =======================
+if (isset($_GET['reviews_api'])) {
+    $action = $_GET['reviews_api'];
+
+    // LIST ULASAN
+    if ($action === 'list') {
+        header('Content-Type: application/json');
+        $rows = [];
+        $res = $conn->query("SELECT id, username, rating, review_text, DATE_FORMAT(created_at, '%d/%m/%y %H:%i') AS created_at, likes, dislikes FROM reviews ORDER BY created_at DESC");
+        if ($res) {
+            while ($r = $res->fetch_assoc()) {
+                $rows[] = $r;
+            }
+        }
+        echo json_encode($rows);
+        exit;
+    }
+
+    // SIMPAN ULASAN BARU
+    if ($action === 'save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Content-Type: text/plain');
+
+        $username = trim($_POST['username'] ?? '');
+        $rating   = intval($_POST['rating'] ?? 0);
+        $text     = trim($_POST['review_text'] ?? '');
+
+        if ($username === '' || $text === '' || $rating < 1 || $rating > 5) {
+            echo "error: invalid data";
+            exit;
+        }
+
+        $stmt = $conn->prepare("INSERT INTO reviews (username, rating, review_text) VALUES (?, ?, ?)");
+        if (!$stmt) {
+            echo "error: prepare failed - " . $conn->error;
+            exit;
+        }
+        $stmt->bind_param("sis", $username, $rating, $text);
+
+        if ($stmt->execute()) {
+            echo "success";
+        } else {
+            echo "error: execute failed - " . $stmt->error;
+        }
+        $stmt->close();
+        exit;
+    }
+
+    // LIKE / DISLIKE
+    if ($action === 'react' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Content-Type: text/plain');
+
+        $id   = intval($_POST['id'] ?? 0);
+        $type = $_POST['type'] ?? '';
+
+        if ($id <= 0 || !in_array($type, ['like', 'dislike'])) {
+            echo "error: invalid data";
+            exit;
+        }
+
+        if ($type === 'like') {
+            $sql = "UPDATE reviews SET likes = likes + 1 WHERE id = $id";
+        } else {
+            $sql = "UPDATE reviews SET dislikes = dislikes + 1 WHERE id = $id";
+        }
+
+        if ($conn->query($sql)) {
+            echo "success";
+        } else {
+            echo "error: update failed - " . $conn->error;
+        }
+        exit;
+    }
+
+    // kalau action tidak dikenali
+    echo "error: unknown action";
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -57,14 +165,23 @@ body{
     font-size:14px;
     letter-spacing:0.3px;
 }
-.topbar-right{
-    display:flex;
-    gap:25px;
+.topbar-right {
+    display: flex;
+    gap: 32px;
 }
-.topbar-right span{
-    font-size:14px;
-    letter-spacing:0.3px;
+
+.topbar-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
+
+.topbar-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.85;
+}
+
 
 /* ================= NAVBAR ================= */
 
@@ -84,20 +201,20 @@ body{
     align-items:center;
     gap:10px;
 }
-.brand img{ height:56px; }
+.brand img{ height:54px; }
 
 /* PMB pakai Gravitas One, UDSA pakai Katibeh */
 .pmb-title{
     font-family: 'Gravitas One', serif;
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 400;
-    color: #7c6c2d;
+    color: #7F7121;
     letter-spacing: 1px;
     margin-right: 6px;
 }
 .udsa-title{
     font-family: 'Katibeh', serif;
-    font-size: 36px;
+    font-size: 40px;
     font-weight: 400;
     color: #1a355c;
     letter-spacing: 1px;
@@ -118,7 +235,7 @@ body{
     color:#FFFFFF;
     margin:0 18px;
     font-size:17px;
-    font-weight:600;
+    font-weight:400;
     letter-spacing:0.5px;
     padding-bottom:10px;
     transition:color .3s ease;
@@ -129,11 +246,11 @@ body{
 
 /* underline seperti awal (melebar dari kiri) */
 .menu > a.active {
-    color:#6d6875 !important;
+    color:#79787F !important;
 }
 .menu > a::after,
 .menu > .menu-info > a::after{
-    content:"";
+    content: "";
     position:absolute;
     left:0;
     bottom:0;
@@ -141,7 +258,7 @@ body{
     height:3px;
     background:#79787F;
     border-radius:999px;
-    transition:width .3s ease;
+    transition:width .4s ease;
 }
 .menu > a:hover::after,
 .menu > .menu-info > a:hover::after{ width:100%; }
@@ -153,29 +270,47 @@ body{
 .menu a.login{
     background:var(--login-btn);
     border:2px solid var(--login-btn);
-    padding:8px 28px;
+    padding:1px 28px;
     border-radius:15px;
-    color:#fff !important;
-    font-size:16px;
-    font-weight:700;
+    color:#ffffff !important;
+    font-size:20px;
+    font-weight:400;
     margin-left:24px;
     transition:border .3s ease;
 }
 .menu a.login:hover{ border-color:#cc0000 !important; }
-
 /* ================= DROPDOWN INFO ================= */
+/* WRAPPER */
 .menu-info{
-    position:relative;
-    display:flex;
-    flex-direction:column;
+  position:relative;
+  display:flex;
+  align-items:center;
 }
+
+/* LINK INFO (TEKS + PANAH SEJAJAR) */
+.menu-info > a.info-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  line-height:1;
+  font-weight:400;
+}
+
+/* PANAH ▼ */
+.menu-info > a.info-link .caret{
+  display:inline-block;
+  font-size:12px;
+  line-height:1;
+  transform: translateY(-3px);
+}
+
 
 .info-dropdown{
     position:absolute;
     top:100%;
     left:50%;
     transform:translateX(-50%) translateY(8px);
-    background:#f8f6e4;
+    background:#CBC9D3;
     border-radius:14px;
     box-shadow:0 8px 18px rgba(0,0,0,0.15);
     padding:14px 20px;
@@ -195,15 +330,15 @@ body{
 .info-dropdown a{
     display:block;
     text-decoration:none;
-    font-family:"Cormorant Garamond", serif;
+    font-family:"Karma", serif;
     font-size:18px;
-    color:#333;
+    color:#ffffff;
     padding:6px 0;
     letter-spacing:0.3px;
     white-space:nowrap;
 }
 .info-dropdown a::after{ display:none !important; }
-.info-dropdown a:hover{ color:#7a6b23; }
+.info-dropdown a:hover{ color:#79787F; }
 
 /* ================= MAIN PANEL ================= */
 
@@ -238,7 +373,7 @@ body{
 }
 .welcome-text h3{
     font-size:48px;
-    font-family:'Miltonian Tattoo', serif;
+    font-family:'Katibeh', serif;
     color:#0f6d1a;
 }
 
@@ -266,21 +401,21 @@ body{
 .quote{
     width:45%;
     max-width:520px;
-    color:#fff;
+    color:#FFFFFF;
     font-family:"Katibeh", serif;
     font-size:30px;
     text-shadow:1px 1px 4px rgba(0,0,0,.8);
 }
 
 .quote-content button{
-    background:#627D91;
+    background:#57768D;
     color:#ffffff;
-    font-family:"Georgia","Times New Roman",serif;
+    font-family:"Katibeh",serif;
     font-size:16px;
-    font-weight:600;
-    padding:7px 38px;
+    font-weight:400;
+    padding:12px 38px;
     border:none;
-    border-radius:18px;
+    border-radius:10px;
     text-decoration:none;
     display:inline-block;
     cursor:pointer;
@@ -301,6 +436,7 @@ body{
     justify-content:space-between;
 }
 .info-box .item{
+    color:#FFFFFF;
     flex:1;
     display:flex;
     align-items:center;
@@ -312,22 +448,22 @@ body{
 
 .icon-container img{ height:60px; }
 
-/* ======== REVIEW & RATING SECTION (BARU) ======== */
+/* ======== REVIEW & RATING SECTION ======== */
 
 .review-section{
     background:#f3efdd;
     padding:40px 40px 60px;
-    font-family:"Cormorant Garamond", serif;
+    font-family:"Katibeh", serif;
 }
 
 .review-title{
-    font-size:26px;
-    font-weight:700;
+    font-size:36px;
+    font-weight:400;
     margin-bottom:20px;
 }
 
 .review-top{
-    background:#fff;
+    background:#ffffff;
     padding:24px 26px 30px;
     max-width:560px;
 }
@@ -369,7 +505,7 @@ body{
     font-size:14px;
 }
 
-/* Lebar bar sesuai persentase (bisa disesuaikan) */
+/* Lebar bar sesuai persentase (saat ini statis) */
 .bar-5{ width:95%; }
 .bar-4{ width:80%; }
 .bar-3{ width:48%; }
@@ -383,20 +519,61 @@ body{
 }
 
 .review-subtitle{
+    font-family:"Katibeh", sans-serif;
     font-size:20px;
-    font-weight:700;
+    font-weight:400;
     margin-bottom:16px;
 }
 
-.review-input{
-    background:#e8e2c2;
-    border-radius:24px;
-    padding:10px 20px;
-    font-size:15px;
-    color:#777;
+/* form ulasan */
+.review-form{
+    background:#F1ECCF;
+    border-radius:15px;
+    padding:14px 14px 16px;
     margin-bottom:22px;
     font-family:"Jaldi", sans-serif;
+}
+
+.review-form-row{
+    display:flex;
+    gap:12px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+}
+
+.review-form input[type="text"],
+.review-form select{
+    padding:6px 8px;
+    border-radius:8px;
+    border:1px solid #c9c2a2;
+    font-size:14px;
+    flex:1;
+    min-width:140px;
+}
+
+.review-form textarea{
     width:100%;
+    min-height:70px;
+    padding:8px;
+    border-radius:8px;
+    border:1px solid #c9c2a2;
+    font-size:14px;
+    resize:vertical;
+    margin-bottom:10px;
+}
+
+.review-form button{
+    background:#7a6b23;
+    border:none;
+    color:#fff;
+    padding:8px 18px;
+    border-radius:999px;
+    font-size:14px;
+    cursor:pointer;
+    font-family:"Jaldi", sans-serif;
+}
+.review-form button:hover{
+    background:#64581d;
 }
 
 /* CARD ULASAN */
@@ -404,7 +581,7 @@ body{
     display:flex;
     gap:14px;
     margin-bottom:24px;
-    font-family:"Jaldi", sans-serif;
+    font-family:"poppins", sans-serif;
 }
 
 .avatar{
@@ -464,6 +641,10 @@ body{
     color:#555;
 }
 
+.review-actions span{
+    cursor:pointer;
+}
+
 /* ============= FOOTER ============= */
 
 .footer-full{
@@ -485,34 +666,36 @@ body{
     gap:10px;
 }
 .footer-logo{
-    height:60px;
+    height:65px;
 }
 .footer-address{
-    line-height:1.15;
+    line-height:1.2;
 }
 .footer-address b{
+    color:#1a355c;
     font-size:22px;
     font-family:Georgia, serif;
 }
 
-.footer-right{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
+.footer-right {
+    display: grid;
+    grid-template-columns: 0.5fr 0.5fr;
+    grid-template-rows: auto auto;
+    gap: 20px 18px;
+    align-items: center;
 }
-.footer-row-top,
-.footer-row-bottom{
-    display:flex;
-    gap:45px;
+
+.footer-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
-.footer-item{
-    display:flex;
-    align-items:center;
-    gap:6px;
+
+.footer-icon {
+    width: 22px;
+    height: auto;
 }
-.footer-icon{
-    width:18px;
-}
+
 
 /* responsive sederhana */
 @media (max-width:900px){
@@ -546,7 +729,7 @@ body{
 .search-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.25); /* bagian bawah sedikit gelap */
+    background: rgba(0,0,0,0.25);
     display: none;
     justify-content: flex-start;
     align-items: stretch;
@@ -577,7 +760,7 @@ body{
     top:25px;
     right:40px;
     font-size:30px;
-    font-family:"Cormorant Garamond", serif;
+    font-family:"Karma", serif;
     cursor:pointer;
     background:#e6e6e6;
     width:42px;
@@ -595,7 +778,7 @@ body{
 
 .search-container label {
     font-size: 32px;
-    font-family: "Cormorant Garamond", serif;
+    font-family: "Karma", serif;
     margin-bottom: 12px;
     display: block;
 }
@@ -611,7 +794,7 @@ body{
     border-bottom: 2px solid #333;
     background: transparent;
     font-size: 28px;
-    font-family: "Cormorant Garamond", serif;
+    font-family: "Karma", serif;
     padding: 10px 0;
     outline: none;
 }
@@ -631,13 +814,38 @@ body{
     border: none;
     padding: 14px 60px;
     font-size: 20px;
-    font-family: "Cormorant Garamond", serif;
+    font-family: "Karma", serif;
     border-radius: 28px;
     cursor: pointer;
     transition: .3s ease;
 }
 .search-button:hover {
     background: #64581d;
+}
+
+/* ================= SEARCH RESULTS ================= */
+.search-results{
+    margin-top: 28px;
+    max-height: 35vh;
+    overflow-y: auto;
+    font-family: "Jaldi", sans-serif;
+    font-size: 16px;
+}
+
+.search-result-item{
+    padding: 10px 0;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.search-result-item-title{
+    font-weight: 700;
+}
+
+.search-noresult{
+    color: #777;
+    font-style: italic;
+    margin-top: 10px;
 }
 </style>
 </head>
@@ -647,15 +855,25 @@ body{
 <div class="topbar">
     <div class="topbar-content">
         <div class="topbar-left">
-            <a href="#">www.udsa.ac.id</a>
+            <a href="home.php">www.udsa.ac.id</a>
             <a href="berita.php">Berita</a>
             <a href="career.php">Career</a>
             <a href="#" onclick="openSearch();return false;">Search</a>
         </div>
         <div class="topbar-right">
-            <span>JL. Lingkar Salatiga - Pulutan</span>
-            <span>(+62) 0123456</span>
+
+            <div class="topbar-item">
+                <img src="assets/icons/location.png" class="topbar-icon">
+                <span>JL. Lingkar Salatiga - Pulutan</span>
+            </div>
+
+            <div class="topbar-item">
+                <img src="assets/icons/phone.png" class="topbar-icon">
+                <span>(+62) 0123456</span>
+            </div>
+
         </div>
+
     </div>
 </div>
 
@@ -678,10 +896,9 @@ body{
 
             <!-- MENU INFO DROPDOWN -->
             <div class="menu-info">
-                <a href="info.php">Info</a>
+                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
                 <div class="info-dropdown">
-                    <a href="info-pendaftaran.php">Info Pendaftaran</a>
-                    <a href="jadwal-pmb.php">Jadwal &amp; Tahapan</a>
+                    <a href="info.php">Jadwal Penerimaan</a>
                     <a href="pengumuman.php">Pengumuman</a>
                 </div>
             </div>
@@ -750,12 +967,12 @@ body{
             </div>
         </section>
 
-        <!-- REVIEW & RATING (BARU, SESUAI FOTO) -->
+        <!-- REVIEW & RATING -->
         <section class="review-section">
             <h2 class="review-title">Review dan Rating Pendaftar</h2>
 
             <div class="review-top">
-                <!-- bar rating 5–1 -->
+                <!-- bar rating 5–1 (statis dulu) -->
                 <div class="rating-row">
                     <span class="rating-label">5</span>
                     <div class="rating-bar-bg">
@@ -800,54 +1017,24 @@ body{
             <div class="review-list-wrapper">
                 <h3 class="review-subtitle">Ulasan Teratas Pelayanan Kampus UDSA</h3>
 
-                <div class="review-input">Tulis Ulasan Kamu...</div>
-
-                <!-- Review 1 -->
-                <div class="review-card">
-                    <div class="avatar">
-                        <span>👤</span>
+                <!-- FORM TULIS ULASAN -->
+                <div class="review-form">
+                    <div class="review-form-row">
+                        <input type="text" id="reviewName" placeholder="Nama kamu">
+                        <select id="reviewRating">
+                            <option value="5">⭐ 5 - Sangat Puas</option>
+                            <option value="4">⭐ 4 - Puas</option>
+                            <option value="3">⭐ 3 - Cukup</option>
+                            <option value="2">⭐ 2 - Kurang</option>
+                            <option value="1">⭐ 1 - Buruk</option>
+                        </select>
                     </div>
-                    <div class="review-content">
-                        <div class="review-header">
-                            <span class="review-name">feronikarisra</span>
-                            <span class="review-date">11/12/25</span>
-                        </div>
-                        <div class="stars">★★★★★</div>
-                        <div class="review-text">
-                            “Proses pendaftaran melalui Web PMB sangat mudah dan cepat.
-                            Tampilan website bersih dan informatif, sehingga saya tidak kesulitan
-                            mencari panduan pendaftaran atau jadwal penting. Saya sangat mengapresiasi
-                            kemudahan upload dokumen dan konfirmasi pembayaran yang real-time.”
-                        </div>
-                        <div class="review-actions">
-                            <span>👍 12</span>
-                            <span>🔁 Bagikan</span>
-                        </div>
-                    </div>
+                    <textarea id="reviewText" placeholder="Tulis ulasan kamu di sini..."></textarea>
+                    <button type="button" onclick="submitReview()">Kirim Ulasan</button>
                 </div>
 
-                <!-- Review 2 -->
-                <div class="review-card">
-                    <div class="avatar">
-                        <span>👤</span>
-                    </div>
-                    <div class="review-content">
-                        <div class="review-header">
-                            <span class="review-name">lestariayu</span>
-                            <span class="review-date">13/12/25</span>
-                        </div>
-                        <div class="stars">★★★★☆</div>
-                        <div class="review-text">
-                            “Fitur upload dokumen sangat bermanfaat. Saya sempat mencoba beberapa
-                            kali dengan format dan ukuran file yang sesuai, namun sekali gagal di tengah jalan.
-                            Mohon segera diperbaiki.”
-                        </div>
-                        <div class="review-actions">
-                            <span>👍 8</span>
-                            <span>🔁 Bagikan</span>
-                        </div>
-                    </div>
-                </div>
+                <!-- ULASAN DINAMIS DARI DATABASE -->
+                <div id="reviewsContainer"></div>
 
             </div>
         </section>
@@ -869,15 +1056,29 @@ body{
         </div>
 
         <div class="footer-right">
-            <div class="footer-row-top">
-                <div class="footer-item"><img src="assets/icons/ig.png"><span>@udsa_salatiga</span></div>
-                <div class="footer-item"><img src="assets/icons/yt.png"><span>UDSA SALATIGA</span></div>
+
+            <div class="footer-item">
+                <img src="assets/icons/ig.png" class="footer-icon">
+                <span>@udsa_salatiga</span>
             </div>
-            <div class="footer-row-bottom">
-                <div class="footer-item"><img src="assets/icons/telp.png"><span>(+62) 0123456</span></div>
-                <div class="footer-item"><img src="assets/icons/mail.png"><span>pmb@udsa.ac.id</span></div>
+
+            <div class="footer-item">
+                <img src="assets/icons/yt.png" class="footer-icon">
+                <span>UDSA SALATIGA</span>
             </div>
+
+            <div class="footer-item">
+                <img src="assets/icons/telp.png" class="footer-icon">
+                <span>(+62) 0123456</span>
+            </div>
+
+            <div class="footer-item">
+                <img src="assets/icons/mail.png" class="footer-icon">
+                <span>pmb@udsasalatiga.ac.id</span>
+            </div>
+
         </div>
+
 
     </div>
 </div>
@@ -888,39 +1089,241 @@ body{
         <div class="search-close" onclick="closeSearch()">X</div>
 
         <div class="search-container">
-            <label>Type your search</label>
-
             <div class="search-input-wrapper">
-                <input type="text" class="search-input" placeholder="">
+                <input id="searchInput" type="text" class="search-input" placeholder="Type your search" />
                 <span class="search-icon" onclick="doSearch()">🔍</span>
             </div>
 
             <button class="search-button" onclick="doSearch()">Search</button>
+
+            <!-- HASIL PENCARIAN DI BAWAH INPUT -->
+            <div id="searchResults" class="search-results"></div>
         </div>
     </div>
 </div>
 
 <script>
+// ================== DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH ==================
+const NAV_PAGES = [
+    { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
+    { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
+    { title: "Biaya", url: "biaya.php", keywords: ["biaya", "uang kuliah", "ukt", "pembayaran"] },
+    { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
+    { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
+    { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
+    { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
+    { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
+    { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
+];
+
 function openSearch(){
-    document.getElementById("searchOverlay").style.display="flex";
+    const overlay = document.getElementById("searchOverlay");
+    overlay.style.display = "flex";
+    setTimeout(() => {
+        const input = document.getElementById("searchInput");
+        if(input) input.focus();
+    }, 50);
 }
 
 function closeSearch(){
-    document.getElementById("searchOverlay").style.display="none";
+    document.getElementById("searchOverlay").style.display = "none";
+    document.getElementById("searchResults").innerHTML = "";
+    document.getElementById("searchInput").value = "";
 }
 
-/* FUNCTION SEARCH */
+/* FUNCTION SEARCH NAVBAR PAGES */
 function doSearch(){
-    let keyword = document.querySelector(".search-input").value.trim();
+    const input = document.getElementById("searchInput");
+    const keyword = (input.value || "").trim().toLowerCase();
+    const resultBox = document.getElementById("searchResults");
+    resultBox.innerHTML = "";
 
     if(keyword === ""){
         alert("Masukkan kata pencarian!");
         return;
     }
 
-    // Redirect ke halaman pencarian
-    window.location.href = "search.php?q=" + encodeURIComponent(keyword);
+    const results = NAV_PAGES.filter(page => {
+        const inTitle = page.title.toLowerCase().includes(keyword);
+        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+        return inTitle || inKeywords;
+    });
+
+    if(results.length === 0){
+        resultBox.innerHTML = '<div class="search-noresult">Halaman tidak ditemukan. Coba kata kunci lain.</div>';
+        return;
+    }
+
+    results.forEach(page => {
+        const item = document.createElement("div");
+        item.className = "search-result-item";
+        item.onclick = () => { window.location.href = page.url; };
+        item.innerHTML = `<div class="search-result-item-title">${page.title}</div>`;
+        resultBox.appendChild(item);
+    });
 }
+// tekan ENTER untuk search
+document.getElementById("searchInput").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+        e.preventDefault(); // mencegah reload / submit default
+        doSearch();
+    }
+});
+
+/* opsional: tekan ESC untuk tutup search */
+document.addEventListener("keydown", (e) => {
+    if(e.key === "Escape"){
+        const overlay = document.getElementById("searchOverlay");
+        if(overlay && overlay.style.display === "flex") closeSearch();
+    }
+});
+
+// ================== REVIEW: LOAD, SUBMIT, LIKE, DISLIKE ==================
+
+function loadReviews() {
+    fetch("home.php?reviews_api=list")
+        .then(res => res.json())
+        .then(data => {
+            let container = document.getElementById("reviewsContainer");
+            container.innerHTML = "";
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="review-text" style="font-style:italic;color:#777;">Belum ada ulasan. Jadilah yang pertama menulis ulasan.</div>';
+                return;
+            }
+
+            data.forEach(r => {
+                const stars = "★".repeat(parseInt(r.rating || 0));
+
+                const card = document.createElement("div");
+                card.className = "review-card";
+                card.innerHTML = `
+                    <div class="avatar"><span>👤</span></div>
+                    <div class="review-content">
+                        <div class="review-header">
+                            <span class="review-name">${r.username}</span>
+                            <span class="review-date">${r.created_at ?? ""}</span>
+                        </div>
+                        <div class="stars">${stars}</div>
+                        <div class="review-text">${r.review_text}</div>
+                        <div class="review-actions">
+                            <span class="like-btn" data-id="${r.id}">
+                                👍 <span class="like-count">${r.likes}</span>
+                            </span>
+                            <span class="dislike-btn" data-id="${r.id}">
+                                👎 <span class="dislike-count">${r.dislikes}</span>
+                            </span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // event listener tombol like
+            document.querySelectorAll(".like-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    sendReaction(this.dataset.id, "like", this);
+                });
+            });
+
+            // event listener tombol dislike
+            document.querySelectorAll(".dislike-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    sendReaction(this.dataset.id, "dislike", this);
+                });
+            });
+        })
+        .catch(err => {
+            console.error("Gagal load review:", err);
+        });
+}
+
+function submitReview() {
+    const nameEl   = document.getElementById("reviewName");
+    const ratingEl = document.getElementById("reviewRating");
+    const textEl   = document.getElementById("reviewText");
+
+    const username = nameEl.value.trim();
+    const rating   = ratingEl.value;
+    const text     = textEl.value.trim();
+
+    if (username === "" || text === "") {
+        alert("Nama dan isi ulasan wajib diisi.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("rating", rating);
+    formData.append("review_text", text);
+
+    fetch("home.php?reviews_api=save", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.text())
+    .then(resp => {
+        console.log("Response save:", resp);
+        if (resp.trim() === "success") {
+            nameEl.value = "";
+            ratingEl.value = "5";
+            textEl.value = "";
+            loadReviews();
+        } else {
+            alert("Gagal menyimpan ulasan.\nServer: " + resp);
+        }
+    })
+    .catch(err => {
+        console.error("Error simpan ulasan:", err);
+        alert("Terjadi kesalahan koneksi ke server.");
+    });
+}
+
+function sendReaction(id, type, element) {
+    const formData = new FormData();
+    formData.append("id", id);
+    formData.append("type", type);
+
+    fetch("home.php?reviews_api=react", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.text())
+    .then(resp => {
+        console.log("Response react:", resp);
+        if (resp.trim() === "success") {
+            if (type === "like") {
+                const countSpan = element.querySelector(".like-count");
+                countSpan.innerText = parseInt(countSpan.innerText) + 1;
+            } else {
+                const countSpan = element.querySelector(".dislike-count");
+                countSpan.innerText = parseInt(countSpan.innerText) + 1;
+            }
+        } else {
+            alert("Gagal memproses like/dislike.\nServer: " + resp);
+        }
+    })
+    .catch(err => {
+        console.error("Error react:", err);
+        alert("Terjadi kesalahan koneksi ke server.");
+    });
+}
+
+// ================== DOM READY ==================
+document.addEventListener("DOMContentLoaded", function(){
+    // enter to search
+    const input = document.querySelector(".search-input");
+    if(input){
+        input.addEventListener("keydown", function(e){
+            if(e.key === "Enter"){
+                doSearch();
+            }
+        });
+    }
+
+    // load review dari database
+    loadReviews();
+});
 </script>
 
 </body>
