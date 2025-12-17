@@ -1,33 +1,63 @@
 <?php
 session_start();
+require 'koneksi.php';
 
-/* INJEK: link kartu peserta dinamis */
-$kartuHref = "kartu.php";
-if (!empty($_SESSION['last_pendaftaran_id'])) {
-    $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
+// wajib login (butuh id pendaftaran tersimpan di session)
+if (empty($_SESSION['last_pendaftaran_id'])) {
+    header("Location: login.php");
+    exit;
 }
+
+$pid = (int)$_SESSION['last_pendaftaran_id'];
+
+// ambil data terbaru dari DB
+$stmt = $conn->prepare("SELECT id, nama, email, prodi1, foto FROM pendaftaran_snbp WHERE id = ? LIMIT 1");
+$stmt->bind_param("i", $pid);
+$stmt->execute();
+$res = $stmt->get_result();
+$user = $res ? $res->fetch_assoc() : null;
+$stmt->close();
+
+if (!$user) {
+    // session ada tapi data hilang
+    session_destroy();
+    header("Location: login.php");
+    exit;
+}
+
+$nama  = (string)$user['nama'];
+$email = (string)$user['email'];
+$prodi = (string)$user['prodi1'];
+
+$fotoUrl = "assets/images/default-user.jpg";
+if (!empty($user['foto'])) {
+    $fotoUrl = "assets/upload/" . rawurlencode((string)$user['foto']);
+}
+
+// link kartu peserta dinamis
+$kartuHref = "kartu.php?id=" . urlencode((string)$user['id']);
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Uang Kuliah Tunggal - PMB UDSA</title>
+<title>Dashboard - PMB UDSA</title>
 
 <!-- GOOGLE FONTS -->
 <link href="https://fonts.googleapis.com/css2?family=Katibeh&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Miltonian+Tattoo&family=Gravitas+One&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Jaldi:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Gantari:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 /* RESET */
 *{margin:0;padding:0;box-sizing:border-box;}
 body{
+    font-family:sans-serif;
     background:#f6f2d9;
     color:#333;
-    font-family: "Cormorant Garamond", serif;
 }
 
 /* ROOT COLOR */
@@ -123,6 +153,7 @@ body{
 }
 
 /* ================= NAV MENU (UNDERLINE KLASIK) ================= */
+
 .menu{
     display:flex;
     align-items:center;
@@ -146,7 +177,9 @@ body{
 .menu > .menu-info > a:hover{ color:#79787F; }
 
 /* underline seperti awal (melebar dari kiri) */
-.menu > a.active { color:#79787F !important; }
+.menu > a.active {
+    color:#79787F !important;
+}
 .menu > a::after,
 .menu > .menu-info > a::after{
     content: "";
@@ -171,7 +204,7 @@ body{
     border:2px solid var(--login-btn);
     padding:1px 28px;
     border-radius:15px;
-    color:#ffffff !important; /* FIX: sebelumnya #fffff */
+    color:#ffffff !important;
     font-size:20px;
     font-weight:400;
     margin-left:24px;
@@ -179,7 +212,7 @@ body{
 }
 .menu a.login:hover{ border-color:#cc0000 !important; }
 
-/* ================= DROPDOWN INFO ================= */
+ /* ================= DROPDOWN INFO ================= */
 /* WRAPPER */
 .menu-info{
   position:relative;
@@ -204,6 +237,7 @@ body{
   transform: translateY(-3px);
 }
 
+
 .info-dropdown{
     position:absolute;
     top:100%;
@@ -219,11 +253,13 @@ body{
     transition:opacity .2s ease, transform .2s ease;
     z-index:1000;
 }
+
 .menu-info:hover .info-dropdown{
     opacity:1;
     visibility:visible;
     transform:translateX(-50%) translateY(0);
 }
+
 .info-dropdown a{
     display:block;
     text-decoration:none;
@@ -237,97 +273,305 @@ body{
 .info-dropdown a::after{ display:none !important; }
 .info-dropdown a:hover{ color:#79787F; }
 
-/* ============= MAIN CONTENT ============= */
+/* ================= MAIN PANEL ================= */
 
-/* HERO */
-.ukt-hero{
-    background:#807222;
-    padding:26px 20px;
-    text-align:center;
-}
-.ukt-hero h1{
-    font-weight:400;
-    color:#ffffff;
-    font-size:42px;
-    font-family:"Poppins", serif;
-    letter-spacing:1px;
+.main-panel{ background:var(--cream-bg); }
+
+/* ================= DASHBOARD MAIN (NEW) ================= */
+.dashboard-page{
+  padding: 40px 0 50px;
 }
 
-/* DESC */
-.ukt-desc{
-    text-align:center;
-    padding:26px 40px 12px;
-}
-.ukt-desc p{
-    max-width:900px;
-    margin:auto;
-    font-size:16px;
-    font-family:"Poppins", serif;
-    line-height:1.6;
+.dashboard-container{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
 }
 
-/* WRAPPER */
-.ukt-wrapper{
-    max-width:1250px;
-    margin:0 auto 60px;
-    padding:0 20px;
+.dashboard-top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
 }
 
-/* SEARCH BOX */
-.ukt-toolbar{
-    display:flex;
-    justify-content:flex-end;
-    margin-bottom:10px;
-}
-.ukt-search{
-    display:flex;
-    align-items:center;
-    background:#f5ecd0;
-    border-radius:18px;
-    padding:6px 14px 6px 20px;
-}
-.ukt-search input{
-    border:none;
-    background:transparent;
-    font-size:12px;
-    width:150px;
-}
-.ukt-search button{
-    border:none;
-    background:#b5913d;
-    color:white;
-    width:34px;
-    height:34px;
-    border-radius:50%;
-    cursor:pointer;
+.dashboard-greet h1{
+  font-family: "Katibeh", serif;
+  font-size: 46px;
+  font-weight: 400;
+  color: #111;
+  margin-bottom: 6px;
 }
 
-/* TABLE */
-.ukt-table{
+.dashboard-greet .sub{
+  font-family: "Katibeh", serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: #111;
+}
+
+.btn-logout{
+  background: #ff5a5a;
+  color: #000;
+  border: none;
+  padding: 12px 40px;
+  border-radius: 10px;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.dashboard-grid{
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 36px;
+  margin-top: 18px;
+}
+
+/* LEFT */
+.profile-row{
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 14px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.avatar{
+  width: 98px;
+  height: 98px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.profile-name{
+  font-family: "Poppins", sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #111;
+  line-height: 1.2;
+}
+
+.profile-email{
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  color: #222;
+  margin-top: 6px;
+}
+
+.side-menu{
+  margin-top: 22px;
+  display: grid;
+  gap: 14px;
+}
+
+.side-link{
+  display: block;
+  text-decoration: none;
+  text-align: center;
+  padding: 16px 18px;
+  font-family: "Poppins", sans-serif;
+  font-size: 18px;
+  background: #d9d9d9;
+  color: #111;
+}
+
+.side-link.active{
+  background: #79b5f2;
+  color: #000;
+}
+
+/* RIGHT */
+.right-col{
+  display: grid;
+  gap: 22px;
+}
+
+.box{
+  background: #fff;
+  padding: 26px 28px;
+}
+
+.box-title{
+  font-family: "Poppins", sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+  color: #111;
+  margin-bottom: 12px;
+}
+
+.status-label{
+  font-family: "Poppins", sans-serif;
+  font-size: 22px;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.status-value{
+  font-family: "Poppins", sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: #111;
+}
+
+.progress-list{
+  margin-top: 8px;
+  display: grid;
+  gap: 18px;
+}
+
+.progress-item{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: "Poppins", sans-serif;
+  font-size: 18px;
+  color: #111;
+}
+
+.icon-24{
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+}
+
+.muted{
+  color: #333;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+}
+
+.pay-lines{
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  color: #111;
+}
+
+/* Responsive */
+@media (max-width: 980px){
+  .dashboard-grid{ grid-template-columns: 1fr; }
+  .btn-logout{ padding: 12px 26px; }
+  .dashboard-greet h1{ font-size: 36px; }
+}
+
+/* ================= SEARCH OVERLAY (SETENGAH HALAMAN) ================= */
+.search-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+    display: none;
+    justify-content: flex-start;
+    align-items: stretch;
+    z-index: 9999;
+    animation: fadeIn .3s ease;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+/* panel putih hanya setengah tinggi layar */
+.search-panel {
+    background:#f5f5f5;
     width:100%;
-    border-collapse:collapse;
-    background:#fbf7e7;
-    font-family:"Poppins", serif;
-    font-size:17px;
+    height:50vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding-top:80px;
+    position:relative;
 }
-.ukt-table th{
-    background:#7e7028;
-    color:#fff;
-    padding:15px;
-    border:1px solid #65551a;
-    font-weight:400;
+
+/* tombol X di pojok kanan atas panel */
+.search-close {
+    position: absolute;
+    top:25px;
+    right:40px;
+    font-size:30px;
+    font-family:"Karma", serif;
+    cursor:pointer;
+    background:#e6e6e6;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
-.ukt-table td{
-    padding:14px;
-    border:1px solid #d2c7a2;
+
+.search-container {
+    width: 70%;
+    max-width: 900px;
 }
-.ukt-fakultas-row td{
-    background:#f0e5bf;
-    font-weight:400;
-    font-size:18px;
+
+.search-input-wrapper {
+    position: relative;
+    width: 100%;
 }
-.ukt-no{
-    font-weight:700;
+
+.search-input {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #333;
+    background: transparent;
+    font-size: 28px;
+    font-family: "Karma", serif;
+    padding: 10px 0;
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+.search-button {
+    margin-top: 40px;
+    background: #7a6b23;
+    color: #fff;
+    border: none;
+    padding: 14px 60px;
+    font-size: 20px;
+    font-family: "Karma", serif;
+    border-radius: 28px;
+    cursor: pointer;
+    transition: .3s ease;
+}
+.search-button:hover {
+    background: #64581d;
+}
+
+/* ================= SEARCH RESULTS ================= */
+.search-results{
+    margin-top: 28px;
+    max-height: 35vh;
+    overflow-y: auto;
+    font-family: "Jaldi", sans-serif;
+    font-size: 16px;
+}
+
+.search-result-item{
+    padding: 10px 0;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.search-result-item-title{
+    font-weight: 700;
+}
+
+.search-noresult{
+    color: #777;
+    font-style: italic;
+    margin-top: 10px;
 }
 
 /* ============= FOOTER ============= */
@@ -380,126 +624,11 @@ body{
     width: 22px;  /* ukuran icon sesuai foto */
     height: auto;
 }
-/* ================= SEARCH OVERLAY (SETENGAH HALAMAN) ================= */
-.search-overlay{
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.25);
-    display: none;
-    justify-content: flex-start;
-    align-items: stretch;
-    z-index: 9999;
-    animation: fadeIn .3s ease;
-}
-
-@keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
-}
-
-/* ================= SEARCH PANEL (SETENGAH HALAMAN) ================= */
-.search-panel {
-    background:#f5f5f5;
-    width:100%;
-    height:50vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding-top:80px;
-    position:relative;
-}
-
-/* tombol X di pojok kanan atas panel */
-.search-close {
-    position: absolute;
-    top:25px;
-    right:40px;
-    font-size:30px;
-    font-family:"Karma", serif;
-    cursor:pointer;
-    background:#e6e6e6;
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-.search-container {
-    width: 70%;
-    max-width: 900px;
-}
-
-.search-container label {
-    font-size: 32px;
-    font-family: "Karma", serif;
-    margin-bottom: 12px;
-    display: block;
-}
-
-.search-input-wrapper {
-    position: relative;
-    width: 100%;
-}
-
-.search-input {
-    width: 100%;
-    border: none;
-    border-bottom: 2px solid #333;
-    background: transparent;
-    font-size: 28px;
-    font-family: "Karma", serif;
-    padding: 10px 0;
-    outline: none;
-}
-
-.search-icon {
-    position: absolute;
-    right: 10px;
-    top: 8px;
-    font-size: 30px;
-    cursor: pointer;
-}
-
-.search-button {
-    margin-top: 40px;
-    background: #7a6b23;
-    color: #fff;
-    border: none;
-    padding: 14px 60px;
-    font-size: 20px;
-    font-family: "Karma", serif;
-    border-radius: 28px;
-    cursor: pointer;
-    transition: .3s ease;
-}
-.search-button:hover { background: #64581d; }
-
-/* ================= SEARCH RESULTS ================= */
-.search-results{
-    margin-top: 28px;
-    max-height: 35vh;
-    overflow-y: auto;
-    font-family: "Jaldi", sans-serif;
-    font-size: 16px;
-}
-.search-result-item{
-    padding: 10px 0;
-    border-bottom: 1px solid #ccc;
-    cursor: pointer;
-}
-.search-result-item-title{ font-weight: 700; }
-.search-noresult{
-    color: #777;
-    font-style: italic;
-    margin-top: 10px;
-}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR (UPDATED) -->
+<!-- TOPBAR (TIDAK DIUBAH) -->
 <div class="topbar">
     <div class="topbar-content">
         <div class="topbar-left">
@@ -525,7 +654,7 @@ body{
     </div>
 </div>
 
-<!-- NAVBAR -->
+<!-- NAVBAR (TIDAK DIUBAH) -->
 <div class="navbar-full">
     <div class="nav-container">
 
@@ -540,7 +669,7 @@ body{
         <div class="menu">
             <a href="home.php">Home</a>
             <a href="prodi.php">Program Studi</a>
-            <a href="biaya.php" class="active">Biaya</a>
+            <a href="biaya.php">Biaya</a>
 
             <!-- MENU INFO DROPDOWN -->
              <div class="menu-info">
@@ -558,125 +687,114 @@ body{
     </div>
 </div>
 
-<!-- HERO -->
-<section class="ukt-hero">
-    <h1>UANG KULIAH TUNGGAL</h1>
-</section>
+<!-- ================= MAIN (SUDAH DISAMAKAN DENGAN FOTO) ================= -->
+<div class="main-panel">
+  <div class="dashboard-page">
+    <div class="dashboard-container">
 
-<!-- DESKRIPSI -->
-<section class="ukt-desc">
-    <p>
-        Sistem biaya studi sarjana di Universitas ... umumnya terdiri dari komponen utama yang dibayarkan
-        pada awal pendaftaran dan setiap semester, salah satunya dihitung dari jumlah satuan kredit semester (SKS)
-    </p>
-</section>
-
-<!-- TABEL -->
-<div class="ukt-wrapper">
-
-    <div class="ukt-toolbar">
-        <div class="ukt-search">
-            <input id="tableSearchInput" type="text" placeholder="Search program studi...">
-            <button type="button" id="tableSearchBtn">&#128269;</button>
+      <!-- GREETING + LOGOUT -->
+      <div class="dashboard-top">
+        <div class="dashboard-greet">
+          <h1>Selamat Datang, <?= htmlspecialchars($nama) ?> !</h1>
+          <div class="sub">No Pendaftaran :<?= (int)$user['id'] ?> | Program Studi: <?= htmlspecialchars($prodi) ?></div>
         </div>
 
+        <!-- kalau logout kamu pakai file lain, ganti action -->
+        <form action="logout.php" method="post">
+          <button type="submit" class="btn-logout">Logout</button>
+        </form>
+      </div>
+
+      <div class="dashboard-grid">
+
+        <!-- LEFT -->
+        <div class="left-col">
+          <div class="profile-row">
+            <img class="avatar" src="<?= htmlspecialchars($fotoUrl) ?>" alt="Foto Profil">
+            <div>
+              <div class="profile-name"><?= htmlspecialchars($nama) ?></div>
+              <div class="profile-email"><?= htmlspecialchars($email) ?></div>
+            </div>
+          </div>
+
+          <div class="side-menu">
+            <a class="side-link active" href="dashboard.php">Dashboard</a>
+            <a class="side-link" href="data_diri.php">Data Diri</a>
+            <a class="side-link" href="upload_berkas.php">Upload Berkas</a>
+            <a class="side-link" href="pengumuman.php">Pengumuman</a>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right-col">
+
+          <!-- STATUS -->
+          <div class="box">
+            <div class="status-label">STATUS PENDAFTARAN :</div>
+            <div class="status-value">MENUNGGU VERIFIKASI DOKUMEN</div>
+          </div>
+
+          <!-- PROGRES -->
+          <div class="box">
+            <div class="box-title">PROGRES PENDAFTARAN</div>
+
+            <div class="progress-list">
+              <div class="progress-item">
+                <svg class="icon-24" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <path d="M7 12l3 3 7-7"></path>
+                </svg>
+                <span>ISI DATA DIRI</span>
+              </div>
+
+              <div class="progress-item">
+                <svg class="icon-24" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <path d="M7 12l3 3 7-7"></path>
+                </svg>
+                <span>UPLOAD DOKUMEN</span>
+              </div>
+
+              <div class="progress-item">
+                <svg class="icon-24" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                </svg>
+                <span>REGISTRASI</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- JADWAL PENTING -->
+          <div class="box">
+            <div class="box-title">JADWAL PENTING</div>
+
+            <div class="progress-item">
+              <svg class="icon-24" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                <path d="M16 2v4M8 2v4M3 10h18"></path>
+              </svg>
+              <span class="muted">Batas Akhir Unggah Berkas : 30 Februari 2026</span>
+            </div>
+          </div>
+
+          <!-- INFORMASI PEMBAYARAN -->
+          <div class="box">
+            <div class="box-title">INFORMASI PEMBAYARAN</div>
+            <div class="pay-lines">
+              <div>Jumlah Tagihan : Rp. 3.500.000</div>
+              <div>Status : Belum Lunas</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
-
-    <table class="ukt-table">
-        <thead>
-            <tr>
-                <th>No.</th>
-                <th>Fakultas/ Program Studi</th>
-                <th>gol I</th>
-                <th>gol II</th>
-                <th>gol III</th>
-                <th>gol IV</th>
-                <th>gol V</th>
-            </tr>
-        </thead>
-        <tbody>
-
-            <tr class="ukt-fakultas-row">
-                <td colspan="7">Fakultas Sains &amp; Teknologi</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">1.</td>
-                <td>Teknologi Informasi</td>
-                <td>500.000</td>
-                <td>1.000.000</td>
-                <td>2.000.000</td>
-                <td>3.000.000</td>
-                <td>4.000.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">2.</td>
-                <td>Sistem Informasi</td>
-                <td>500.000</td>
-                <td>1.000.000</td>
-                <td>2.000.000</td>
-                <td>3.000.000</td>
-                <td>4.000.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">3.</td>
-                <td>Ilmu Komputer</td>
-                <td>500.000</td>
-                <td>1.200.000</td>
-                <td>2.500.000</td>
-                <td>3.400.000</td>
-                <td>4.000.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">4.</td>
-                <td>Data Science</td>
-                <td>500.000</td>
-                <td>1.200.000</td>
-                <td>2.500.000</td>
-                <td>3.400.000</td>
-                <td>4.350.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">5.</td>
-                <td>Biologi</td>
-                <td>500.000</td>
-                <td>1.500.000</td>
-                <td>2.500.000</td>
-                <td>3.400.000</td>
-                <td>4.350.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">6.</td>
-                <td>Matematika</td>
-                <td>650.000</td>
-                <td>1.500.000</td>
-                <td>2.700.000</td>
-                <td>3.700.000</td>
-                <td>4.500.000</td>
-            </tr>
-
-            <tr>
-                <td class="ukt-no">7.</td>
-                <td>Fisika</td>
-                <td>650.000</td>
-                <td>1.500.000</td>
-                <td>2.700.000</td>
-                <td>3.700.000</td>
-                <td>4.500.000</td>
-            </tr>
-
-        </tbody>
-    </table>
-
+  </div>
 </div>
 
-<!-- FOOTER (ORIGINAL RESTORED) -->
- <div class="footer-full">
+<!-- FOOTER (TIDAK DIUBAH) -->
+<div class="footer-full">
     <div class="footer-container">
 
         <div class="footer-left">
@@ -711,12 +829,10 @@ body{
             </div>
 
         </div>
-
-
     </div>
 </div>
 
-<!-- SEARCH OVERLAY (agar tombol Search topbar berfungsi) -->
+<!-- SEARCH OVERLAY (tetap) -->
 <div class="search-overlay" id="searchOverlay">
     <div class="search-panel">
         <div class="search-close" onclick="closeSearch()">X</div>
@@ -795,10 +911,11 @@ function doSearch(){
         resultBox.appendChild(item);
     });
 }
+
 // tekan ENTER untuk search
 document.getElementById("searchInput").addEventListener("keydown", function(e){
     if(e.key === "Enter"){
-        e.preventDefault(); // mencegah reload / submit default
+        e.preventDefault();
         doSearch();
     }
 });
@@ -810,99 +927,6 @@ document.addEventListener("keydown", (e) => {
         if(overlay && overlay.style.display === "flex") closeSearch();
     }
 });
-
-/* ================== SEARCH UNTUK ISI TABEL UKT ================== */
-(function initTableSearch(){
-  const input = document.getElementById("tableSearchInput");
-  const btn = document.getElementById("tableSearchBtn");
-  const table = document.querySelector(".ukt-table");
-  if(!input || !btn || !table) return;
-
-  const tbody = table.tBodies[0];
-  const rows = Array.from(tbody.querySelectorAll("tr"));
-
-  function normalize(str){
-    return (str || "")
-      .toString()
-      .toLowerCase()
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  // ✅ fungsi untuk reset nomor otomatis
-  function renumberVisibleRows(){
-    let no = 1;
-    rows.forEach(row => {
-      const isFacultyRow = row.classList.contains("ukt-fakultas-row");
-      if(isFacultyRow) return;
-
-      if(row.style.display === "none") return;
-
-      const noCell = row.querySelector(".ukt-no");
-      if(noCell){
-        noCell.textContent = no + ".";
-        no++;
-      }
-    });
-  }
-
-  function applyFilter(){
-    const q = normalize(input.value);
-
-    // 1) Filter baris data (bukan baris fakultas)
-    rows.forEach(row => {
-      const isFacultyRow = row.classList.contains("ukt-fakultas-row");
-      if(isFacultyRow){
-        row.style.display = ""; // disesuaikan lagi di langkah 2
-        return;
-      }
-
-      const text = normalize(row.innerText);
-      row.style.display = (q === "" || text.includes(q)) ? "" : "none";
-    });
-
-    // 2) Sembunyikan judul fakultas kalau semua baris dibawahnya tidak ada yang tampil
-    let currentFacultyRow = null;
-    let anyVisibleUnderFaculty = false;
-
-    rows.forEach(row => {
-      const isFacultyRow = row.classList.contains("ukt-fakultas-row");
-
-      if(isFacultyRow){
-        if(currentFacultyRow){
-          currentFacultyRow.style.display = anyVisibleUnderFaculty ? "" : "none";
-        }
-        currentFacultyRow = row;
-        anyVisibleUnderFaculty = false;
-        return;
-      }
-
-      if(row.style.display !== "none"){
-        anyVisibleUnderFaculty = true;
-      }
-    });
-
-    if(currentFacultyRow){
-      currentFacultyRow.style.display = anyVisibleUnderFaculty ? "" : "none";
-    }
-
-    // ✅ 3) setelah filter, reset nomor otomatis
-    renumberVisibleRows();
-  }
-
-  btn.addEventListener("click", applyFilter);
-  input.addEventListener("input", applyFilter);
-
-  input.addEventListener("keydown", (e) => {
-    if(e.key === "Enter"){
-      e.preventDefault();
-      applyFilter();
-    }
-  });
-
-  // ✅ panggil sekali saat awal supaya nomor rapih
-  renumberVisibleRows();
-})();
 </script>
 
 </body>

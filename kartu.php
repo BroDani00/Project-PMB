@@ -44,6 +44,10 @@ $provinsi = $data['provinsi']  ?? '-';
 $prodi1   = $data['prodi1']    ?? 'Belum diisi';
 $prodi2   = $data['prodi2']    ?? 'Belum diisi';
 
+/* ✅ INJEK: FOTO AMBIL DARI DATABASE SAJA (DB simpan nama file) */
+$fotoDb = trim((string)($data['foto'] ?? '')); // contoh: foto123.jpg
+$foto   = $fotoDb !== '' ? 'assets/upload/' . $fotoDb : '';
+
 $stmt->close();
 $conn->close();
 ?>
@@ -313,6 +317,16 @@ body{
     color:#555;
 }
 
+/* ✅ INJEK: gambar foto */
+.kartu-photo-img{
+    width:130px;
+    height:130px;
+    object-fit:cover;
+    border:2px solid #000;
+    background:#fff;
+    display:block;
+}
+
 /* CELL TEKS */
 .kartu-cell{
     border-bottom:1px solid #000;
@@ -525,23 +539,22 @@ body{
     </div>
 
     <div class="menu">
-      <a href="home.php">Home</a>
-      <a href="prodi.php">Program Studi</a>
-      <a href="biaya.php">Biaya</a>
+            <a href="home.php">Home</a>
+            <a href="prodi.php">Program Studi</a>
+            <a href="biaya.php">Biaya</a>
 
-      <div class="menu-info">
-        <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
-        <div class="info-dropdown">
-          <a href="info.php">Jadwal Penerimaan</a>
-          <a href="pengumuman.php">Pengumuman</a>
-        </div>
-      </div>
+            <!-- MENU INFO DROPDOWN -->
+             <div class="menu-info">
+                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
+                <div class="info-dropdown">
+                    <a href="info.php">Jadwal Penerimaan</a>
+                    <a href="pengumuman.php">Pengumuman</a>
+                    <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
+                </div>
+            </div>
 
-      <a href="daftar.php">Daftar</a>
-
-      <!-- ✅ INJEK: selalu mengarah ke kartu peserta yang benar -->
-      <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
-    </div>
+            <a href="daftar.php">Daftar</a>
+            <a href="login.php" class="login">Login</a>
   </div>
 </div>
 
@@ -554,7 +567,11 @@ body{
 
       <div class="kartu-identitas">
         <div class="kartu-photo">
-          <div class="kartu-photo-inner">&#128100;</div>
+          <?php if ($foto !== ''): ?>
+            <img class="kartu-photo-img" src="<?= htmlspecialchars($foto) ?>" alt="Foto Peserta">
+          <?php else: ?>
+            <div class="kartu-photo-inner">&#128100;</div>
+          <?php endif; ?>
         </div>
 
         <div class="kartu-cell">

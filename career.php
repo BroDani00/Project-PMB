@@ -467,19 +467,18 @@ body{
             <a href="prodi.php">Program Studi</a>
             <a href="biaya.php">Biaya</a>
 
-            <div class="menu-info">
+            <!-- MENU INFO DROPDOWN -->
+             <div class="menu-info">
                 <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
                 <div class="info-dropdown">
-                    <!-- ✅ FIX: typo info.php.php -->
                     <a href="info.php">Jadwal Penerimaan</a>
                     <a href="pengumuman.php">Pengumuman</a>
+                    <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
                 </div>
             </div>
 
             <a href="daftar.php">Daftar</a>
-
-            <!-- ✅ INJEK: kartu peserta dinamis -->
-            <a href="<?php echo htmlspecialchars($kartuHref); ?>" class="login">Kartu Peserta</a>
+            <a href="login.php" class="login">Login</a>
         </div>
     </div>
 </div>

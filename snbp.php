@@ -6,30 +6,13 @@ $err = "";
 
 // DAFTAR PRODI (dipakai untuk prodi1 & prodi2)
 $daftar_prodi = [
-    "Teknik Informatika",
+    "Teknologi Informasi",
     "Sistem Informasi",
-    "Manajemen",
-    "Akuntansi",
-    "Pendidikan Matematika",
-    "Pendidikan Bahasa Inggris",
-    "Hukum",
-    "Ilmu Komunikasi"
+    "Data Science",
+    "Biologi",
+    "Matematika",
+    "Fisika",
 ];
-
-// fungsi untuk membuat soal captcha baru
-function generateCaptcha() {
-    $a = rand(1, 9);
-    $b = rand(1, 9);
-
-    $_SESSION['captcha_a'] = $a;
-    $_SESSION['captcha_b'] = $b;
-    $_SESSION['captcha_answer'] = $a + $b;
-}
-
-// kalau pertama kali buka (GET) atau session captcha belum ada -> buat soal
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['captcha_a'], $_SESSION['captcha_b'], $_SESSION['captcha_answer'])) {
-    generateCaptcha();
-}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama        = trim($_POST['nama'] ?? '');
@@ -39,69 +22,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $tgllahir_raw = trim($_POST['tgllahir'] ?? '');
     $tempatlahir  = trim($_POST['tempatlahir'] ?? '');
-
-    $asal       = trim($_POST['asal'] ?? '');
-    $prodi1     = trim($_POST['prodi1'] ?? '');
-    $prodi2     = trim($_POST['prodi2'] ?? '');
+    $asal         = trim($_POST['asal'] ?? '');
 
     $provinsi   = trim($_POST['provinsi'] ?? '');
     $kabupaten  = trim($_POST['kabupaten'] ?? '');
     $kecamatan  = trim($_POST['kecamatan'] ?? '');
     $alamat     = trim($_POST['alamat'] ?? '');
 
-    $captcha_input = trim($_POST['captcha'] ?? '');
-    $expected = $_SESSION['captcha_answer'] ?? null;
+    $prodi1     = trim($_POST['prodi1'] ?? '');
+    $prodi2     = trim($_POST['prodi2'] ?? '');
 
     // konversi tgllahir: dd-mm-yyyy -> Y-m-d
-    $tgllahir = null;
+    $tgllahir = !empty($_POST['tgllahir']) ? $_POST['tgllahir'] : null;
     if ($tgllahir_raw !== '') {
         $dt = DateTime::createFromFormat('d-m-Y', $tgllahir_raw);
         if ($dt) $tgllahir = $dt->format('Y-m-d');
     }
 
-    if ($expected === null || $captcha_input === '' || !ctype_digit($captcha_input) || (int)$captcha_input !== (int)$expected) {
-        $err = "captcha_salah";
-        generateCaptcha();
-    } elseif ($nama === '' || $email === '' || $hp === '' || $nisn === '') {
+    if ($nama === '' || $email === '' || $hp === '' || $nisn === '' || $prodi1 === '' || $prodi2 === '') {
         $err = "wajib_isi";
-        generateCaptcha();
+    } elseif ($prodi1 === $prodi2) {
+        $err = "prodi_sama";
     } else {
-        $stmt = $conn->prepare("
-            INSERT INTO pendaftaran_snbp
-            (nama, nisn, email, hp, tgllahir, tempatlahir, asal,
-             provinsi, kabupaten, kecamatan, alamat, prodi1, prodi2)
-            VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
 
-        if (!$stmt) die('Gagal prepare statement: ' . $conn->error);
+        // ===== UPLOAD FOTO (opsional) =====
+        // ✅ SIMPAN DI DB: hanya NAMA FILE
+        // ✅ SIMPAN DI FOLDER: assets/upload/
+        $fotoDbName = null;
 
-        $stmt->bind_param(
-            "sssssssssssss",
-            $nama, $nisn, $email, $hp, $tgllahir, $tempatlahir, $asal,
-            $provinsi, $kabupaten, $kecamatan, $alamat, $prodi1, $prodi2
-        );
+        if (!empty($_FILES['foto']['name'])) {
+            $allowedExt = ['jpg', 'jpeg', 'png', 'webp'];
+            $maxSize = 2 * 1024 * 1024; // 2MB
 
-        if ($stmt->execute()) {
-            $last_id = $stmt->insert_id;
+            if ($_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
+                $err = "foto_gagal";
+            } elseif ($_FILES['foto']['size'] > $maxSize) {
+                $err = "foto_kebesaran";
+            } else {
+                $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+                if (!in_array($ext, $allowedExt, true)) {
+                    $err = "foto_tipe";
+                } else {
+                    // ✅ folder upload baru
+                    $uploadDir = __DIR__ . "/assets/upload";
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0775, true);
+                    }
 
-            // ✅ SIMPAN ID TERAKHIR KE SESSION -> NAVBAR "KARTU PESERTA" BISA LANGSUNG TAMPILKAN KARTU
-            $_SESSION['last_pendaftaran_id'] = $last_id;
+                    $safeName = "snbp_" . time() . "_" . bin2hex(random_bytes(4)) . "." . $ext;
+                    $dest = $uploadDir . "/" . $safeName;
 
-            $stmt->close();
-            $conn->close();
+                    if (move_uploaded_file($_FILES['foto']['tmp_name'], $dest)) {
+                        $fotoDbName = $safeName; // ✅ simpan nama file saja
+                    } else {
+                        $err = "foto_gagal";
+                    }
+                }
+            }
+        }
 
-            unset($_SESSION['captcha_a'], $_SESSION['captcha_b'], $_SESSION['captcha_answer']);
-            header("Location: kartu.php?id=" . $last_id);
-            exit;
-        } else {
-            $err = "db_error";
-            generateCaptcha();
+        if ($err === "") {
+            $stmt = $conn->prepare("
+                INSERT INTO pendaftaran_snbp
+                (nama, nisn, email, hp, tgllahir, tempatlahir, asal,
+                 foto, provinsi, kabupaten, kecamatan, alamat, prodi1, prodi2)
+                VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+
+            if (!$stmt) die('Gagal prepare statement: ' . $conn->error);
+
+            $stmt->bind_param(
+                "ssssssssssssss",
+                $nama, $nisn, $email, $hp, $tgllahir, $tempatlahir, $asal,
+                $fotoDbName, $provinsi, $kabupaten, $kecamatan, $alamat, $prodi1, $prodi2
+            );
+            if ($stmt->execute()) {
+                $last_id = $stmt->insert_id;
+
+                // SIMPAN ID TERAKHIR KE SESSION -> NAVBAR "KARTU PESERTA" BISA LANGSUNG TAMPILKAN KARTU
+                $_SESSION['last_pendaftaran_id'] = $last_id;
+
+                $stmt->close();
+                $conn->close();
+
+                header("Location: kartu.php?id=" . $last_id);
+                exit;
+            } else {
+                $err = "db_error";
+            }
         }
     }
 }
 
-// ✅ BUAT LINK NAVBAR KARTU PESERTA DINAMIS
+// BUAT LINK NAVBAR KARTU PESERTA DINAMIS
 $kartuHref = "kartu.php";
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
@@ -181,29 +195,38 @@ body{
 }
 
 /* BRAND */
-.brand{ display:flex; align-items:center; gap:10px; }
+.brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
 .brand img{ height:54px; }
 
-/* PMB + UDSA */
+/* PMB pakai Gravitas One, UDSA pakai Katibeh */
 .pmb-title{
-    font-family:'Gravitas One', serif;
-    font-size:30px;
-    font-weight:400;
-    color:#7F7121;
-    letter-spacing:1px;
-    margin-right:6px;
+    font-family: 'Gravitas One', serif;
+    font-size: 30px;
+    font-weight: 400;
+    color: #7F7121;
+    letter-spacing: 1px;
+    margin-right: 6px;
 }
 .udsa-title{
-    font-family:'Katibeh', serif;
-    font-size:40px;
-    font-weight:400;
-    color:#1a355c;
-    letter-spacing:1px;
+    font-family: 'Katibeh', serif;
+    font-size: 40px;
+    font-weight: 400;
+    color: #1a355c;
+    letter-spacing: 1px;
 }
 
 /* ================= NAV MENU (UNDERLINE KLASIK) ================= */
-.menu{ display:flex; align-items:center; }
 
+.menu{
+    display:flex;
+    align-items:center;
+}
+
+/* menu utama */
 .menu > a,
 .menu > .menu-info > a{
     position:relative;
@@ -220,10 +243,13 @@ body{
 .menu > a:hover,
 .menu > .menu-info > a:hover{ color:#79787F; }
 
-.menu > a.active { color:#79787F !important; }
+/* underline seperti awal (melebar dari kiri) */
+.menu > a.active {
+    color:#79787F !important;
+}
 .menu > a::after,
 .menu > .menu-info > a::after{
-    content:"";
+    content: "";
     position:absolute;
     left:0;
     bottom:0;
@@ -252,9 +278,15 @@ body{
     transition:border .3s ease;
 }
 .menu a.login:hover{ border-color:#cc0000 !important; }
-
 /* ================= DROPDOWN INFO ================= */
-.menu-info{ position:relative; display:flex; align-items:center; }
+/* WRAPPER */
+.menu-info{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+
+/* LINK INFO (TEKS + PANAH SEJAJAR) */
 .menu-info > a.info-link{
   display:inline-flex;
   align-items:center;
@@ -262,12 +294,16 @@ body{
   line-height:1;
   font-weight:400;
 }
+
+/* PANAH ▼ */
 .menu-info > a.info-link .caret{
   display:inline-block;
   font-size:12px;
   line-height:1;
   transform: translateY(-3px);
 }
+
+
 .info-dropdown{
     position:absolute;
     top:100%;
@@ -283,11 +319,13 @@ body{
     transition:opacity .2s ease, transform .2s ease;
     z-index:1000;
 }
+
 .menu-info:hover .info-dropdown{
     opacity:1;
     visibility:visible;
     transform:translateX(-50%) translateY(0);
 }
+
 .info-dropdown a{
     display:block;
     text-decoration:none;
@@ -370,18 +408,10 @@ body{
     color:#9d9d9d;
     font-style:italic;
 }
-
-/* CAPTCHA */
-.kode-group{ margin-top:8px; }
-.kode-row{
-    display:grid;
-    grid-template-columns: 160px 1fr;
-    align-items:center;
-    column-gap:16px;
-    margin-top:14px;
+input[type="file"].form-control{
+  padding:8px 10px;
+  background:#fafafa;
 }
-.kode-soal{ font-size:26px; font-weight:400; }
-.kode-input{ width:160px; }
 
 /* BUTTON */
 .form-actions{
@@ -406,7 +436,11 @@ body{
 @media (max-width: 900px){
   .form-card{ margin:0 16px; padding:28px 18px; }
   .form-grid{ grid-template-columns:1fr; column-gap:0; }
-  .form-group, .kode-row{ grid-template-columns: 140px 1fr; }
+  .form-group{ grid-template-columns: 140px 1fr; }
+
+  /* tombol kartu tetap rapi di layar kecil */
+  .nav-container{ flex-wrap:wrap; }
+  .menu-center{ order:3; flex-basis:100%; justify-content:flex-start; }
 }
 
 /* ============= FOOTER ============= */
@@ -538,8 +572,8 @@ body{
   <div class="topbar-content">
     <div class="topbar-left">
       <a href="home.php">www.udsa.ac.id</a>
-      <a href="berita.php">Berita</a>
       <a href="career.php">Career</a>
+      <a href="berita.php">Berita</a>
       <a href="#" onclick="openSearch();return false;">Search</a>
     </div>
     <div class="topbar-right">
@@ -557,34 +591,35 @@ body{
 
 <!-- NAVBAR -->
 <div class="navbar-full">
-  <div class="nav-container">
-    <div class="brand">
-      <img src="assets/images/logo.png" alt="">
-      <div>
-        <span class="pmb-title">PMB</span>
-        <span class="udsa-title">UDSA</span>
-      </div>
-    </div>
+    <div class="nav-container">
 
-    <div class="menu">
-      <a href="home.php">Home</a>
-      <a href="prodi.php">Program Studi</a>
-      <a href="biaya.php">Biaya</a>
-
-      <div class="menu-info">
-        <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
-        <div class="info-dropdown">
-          <a href="info.php">Jadwal Penerimaan</a>
-          <a href="pengumuman.php">Pengumuman</a>
+        <div class="brand">
+            <img src="assets/images/logo.png">
+            <div>
+                <span class="pmb-title">PMB</span>
+                <span class="udsa-title">UDSA</span>
+            </div>
         </div>
-      </div>
 
-      <a href="daftar.php" class="active">Daftar</a>
+        <div class="menu">
+            <a href="home.php">Home</a>
+            <a href="prodi.php">Program Studi</a>
+            <a href="biaya.php">Biaya</a>
 
-      <!-- ✅ LINK DINAMIS: kalau sudah daftar -> kartu.php?id=... -->
-      <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
+            <!-- MENU INFO DROPDOWN -->
+            <div class="menu-info">
+                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
+                <div class="info-dropdown">
+                    <a href="info.php">Jadwal Penerimaan</a>
+                    <a href="pengumuman.php">Pengumuman</a>
+                    <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
+                </div>
+            </div>
+
+            <a href="daftar.php">Daftar</a>
+            <a href="login.php" class="login">Login</a>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- MAIN FORM -->
@@ -594,9 +629,7 @@ body{
       <h1 class="form-heading">Pendaftaran Online</h1>
       <h2 class="form-subtitle">Jalur SNPMB SNBP</h2>
 
-      <!-- NOTIF DIHAPUS SESUAI PERMINTAAN -->
-
-      <form action="" method="post">
+      <form action="" method="post" enctype="multipart/form-data">
         <div class="form-grid">
 
           <!-- KOLOM KIRI -->
@@ -618,7 +651,7 @@ body{
 
             <div class="form-group">
               <label class="form-label" for="tgllahir">Tanggal Lahir</label>
-              <input type="text" id="tgllahir" name="tgllahir" class="form-control" placeholder="dd-mm-yyyy">
+              <input type="date" id="tgllahir" name="tgllahir" class="form-control" placeholder="dd-mm-yy">
             </div>
 
             <div class="form-group">
@@ -628,7 +661,7 @@ body{
 
             <div class="form-group">
               <label class="form-label" for="hp">No. HP<br>(WA Aktif)</label>
-              <input type="text" id="hp" name="hp" class="form-control" placeholder="No. HP Aktif">
+              <input type="text" id="hp" name="hp" class="form-control" placeholder="">
             </div>
 
             <div class="form-group">
@@ -639,6 +672,12 @@ body{
 
           <!-- KOLOM KANAN -->
           <div>
+            <!-- UPLOAD FOTO (sesuai foto) -->
+            <div class="form-group">
+              <label class="form-label" for="foto">Upload foto</label>
+              <input type="file" id="foto" name="foto" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+            </div>
+
             <div class="form-group">
               <label class="form-label" for="provinsi">Provinsi</label>
               <select id="provinsi" name="provinsi" class="form-select">
@@ -668,7 +707,7 @@ body{
             <div class="form-group">
               <label class="form-label" for="prodi1">Pilihan Prodi 1</label>
               <select id="prodi1" name="prodi1" class="form-select" required>
-                <option value="">-- Pilih Prodi --</option>
+                <option value="">Pilih Prodi</option>
                 <?php foreach($daftar_prodi as $prodi): ?>
                   <option value="<?= htmlspecialchars($prodi) ?>"><?= htmlspecialchars($prodi) ?></option>
                 <?php endforeach; ?>
@@ -678,21 +717,11 @@ body{
             <div class="form-group">
               <label class="form-label" for="prodi2">Pilihan Prodi 2</label>
               <select id="prodi2" name="prodi2" class="form-select" required>
-                <option value="">-- Pilih Prodi --</option>
+                <option value="">Pilih Prodi</option>
                 <?php foreach($daftar_prodi as $prodi): ?>
                   <option value="<?= htmlspecialchars($prodi) ?>"><?= htmlspecialchars($prodi) ?></option>
                 <?php endforeach; ?>
               </select>
-            </div>
-
-            <!-- CAPTCHA -->
-            <div class="kode-group">
-              <div class="kode-row">
-                <span class="kode-soal">
-                  <?php echo htmlspecialchars($_SESSION['captcha_a']) . " + " . htmlspecialchars($_SESSION['captcha_b']) . " ="; ?>
-                </span>
-                <input type="text" name="captcha" class="form-control kode-input" placeholder="Jawaban">
-              </div>
             </div>
 
           </div>
@@ -767,7 +796,6 @@ const NAV_PAGES = [
   { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
   { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
   { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
-  { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
   { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
   { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];
@@ -845,7 +873,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const kecSelect  = document.getElementById("kecamatan");
   if (!provSelect || !kabSelect || !kecSelect) return;
 
-  const API_BASE = "https://www.emsifa.com/api-wilayah-indonesia/api";
+  const API_BASE = "wilayah_proxy.php?path=";
+
 
   function setLoading(selectEl, placeholderText) {
     selectEl.innerHTML = `<option value="">${placeholderText}</option>`;
@@ -876,7 +905,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setLoading(kabSelect, "Pilih Kabupaten/Kota");
       setLoading(kecSelect, "Pilih Kecamatan");
 
-      const provs = await fetchJSON(`${API_BASE}/provinces.json`);
+      const provs = await fetchJSON(`${API_BASE}provinces.json`);
       fillOptions(provSelect, "Pilih Provinsi", provs);
       setReady(provSelect);
 
@@ -895,7 +924,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setLoading(kabSelect, "Memuat Kabupaten/Kota...");
       setLoading(kecSelect, "Pilih Kecamatan");
 
-      const kabs = await fetchJSON(`${API_BASE}/regencies/${provId}.json`);
+      const kabs = await fetchJSON(`${API_BASE}regencies/${provId}.json`);
       fillOptions(kabSelect, "Pilih Kabupaten/Kota", kabs);
       setReady(kabSelect);
 
@@ -910,7 +939,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadDistrictsByRegencyId(kabId) {
     try {
       setLoading(kecSelect, "Memuat Kecamatan...");
-      const kecs = await fetchJSON(`${API_BASE}/districts/${kabId}.json`);
+      const kecs = await fetchJSON(`${API_BASE}districts/${kabId}.json`);
       fillOptions(kecSelect, "Pilih Kecamatan", kecs);
       setReady(kecSelect);
     } catch (e) {
@@ -948,15 +977,17 @@ document.addEventListener("DOMContentLoaded", () => {
   loadProvinces();
 });
 
+// disable prodi2 if same as prodi1
 const prodi1 = document.querySelector('select[name="prodi1"]');
 const prodi2 = document.querySelector('select[name="prodi2"]');
 
 function syncProdi() {
+  if (!prodi1 || !prodi2) return;
   [...prodi2.options].forEach(opt => {
     opt.disabled = opt.value && opt.value === prodi1.value;
   });
 }
-prodi1.addEventListener("change", syncProdi);
+if (prodi1) prodi1.addEventListener("change", syncProdi);
 </script>
 
 </body>

@@ -1,3 +1,60 @@
+<?php
+session_start();
+require 'koneksi.php';
+
+$login_err = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $userid = trim($_POST['userid'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+
+    if ($userid === '' || $password === '') {
+        $login_err = 'Mohon isi ID Pendaftaran/email dan password.';
+    } else {
+        // Login sederhana:
+        // - User boleh input ID pendaftaran (angka) ATAU email
+        // - Password = NISN (sesuaikan kalau kamu punya field password sendiri)
+        if (ctype_digit($userid)) {
+            $stmt = $conn->prepare("SELECT id, nama, email, nisn, prodi1, foto FROM pendaftaran_snbp WHERE id = ? LIMIT 1");
+            $id = (int)$userid;
+            $stmt->bind_param("i", $id);
+        } else {
+            $stmt = $conn->prepare("SELECT id, nama, email, nisn, prodi1, foto FROM pendaftaran_snbp WHERE email = ? LIMIT 1");
+            $stmt->bind_param("s", $userid);
+        }
+
+        if ($stmt && $stmt->execute()) {
+            $res = $stmt->get_result();
+            $row = $res ? $res->fetch_assoc() : null;
+
+            if ($row && hash_equals((string)$row['nisn'], $password)) {
+                // simpan session untuk dashboard + kartu peserta
+                $_SESSION['last_pendaftaran_id'] = (int)$row['id'];
+                $_SESSION['user_nama']  = (string)$row['nama'];
+                $_SESSION['user_email'] = (string)$row['email'];
+                $_SESSION['user_prodi'] = (string)$row['prodi1'];
+                $_SESSION['user_foto']  = $row['foto'] ? (string)$row['foto'] : '';
+
+                header("Location: dashboard.php");
+                exit;
+            } else {
+                $login_err = 'Login gagal. Cek lagi ID/email dan password.';
+            }
+        } else {
+            $login_err = 'Terjadi masalah koneksi database.';
+        }
+
+        if ($stmt) $stmt->close();
+    }
+}
+
+// link kartu peserta dinamis dari session
+$kartuHref = "kartu.php";
+if (!empty($_SESSION['last_pendaftaran_id'])) {
+    $kartuHref = "kartu.php?id=" . urlencode((string)$_SESSION['last_pendaftaran_id']);
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -34,7 +91,6 @@ body{
 }
 
 /* ================= TOPBAR ================= */
-
 .topbar{
     background:#f8f6e4;
     padding:6px 0;
@@ -58,63 +114,22 @@ body{
     font-size:14px;
     letter-spacing:0.3px;
 }
-.topbar-right {
-    display: flex;
-    gap: 32px;
+.topbar-right{
+    display:flex;
+    gap:32px;
 }
-
-.topbar-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+.topbar-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
 }
-
-.topbar-icon {
-    width: 16px;
-    height: 16px;
-    opacity: 0.85;
+.topbar-icon{
+    width:16px;
+    height:16px;
+    opacity:.85;
 }
-
 
 /* ================= NAVBAR ================= */
-
-.navbar-full{ background:var(--navbar-bg); width:100%; }
-.nav-container{
-    max-width:1200px;
-    padding:16px 40px;
-    margin:0 auto;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-/* BRAND */
-.brand{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-.brand img{ height:54px; }
-
-/* PMB pakai Gravitas One, UDSA pakai Katibeh */
-.pmb-title{
-    font-family: 'Gravitas One', serif;
-    font-size: 30px;
-    font-weight: 400;
-    color: #7F7121;
-    letter-spacing: 1px;
-    margin-right: 6px;
-}
-.udsa-title{
-    font-family: 'Katibeh', serif;
-    font-size: 40px;
-    font-weight: 400;
-    color: #1a355c;
-    letter-spacing: 1px;
-}
-
-/* ================= NAV MENU (UNDERLINE KLASIK) ================= */
-
 .navbar-full{ background:var(--navbar-bg); width:100%; }
 .nav-container{
     max-width:1200px;
@@ -135,19 +150,19 @@ body{
 
 /* PMB + UDSA */
 .pmb-title{
-    font-family: 'Gravitas One', serif;
-    font-size: 30px;
-    font-weight: 400;
-    color: #7F7121;
-    letter-spacing: 1px;
-    margin-right: 6px;
+    font-family:'Gravitas One', serif;
+    font-size:30px;
+    font-weight:400;
+    color:#7F7121;
+    letter-spacing:1px;
+    margin-right:6px;
 }
 .udsa-title{
-    font-family: 'Katibeh', serif;
-    font-size: 40px;
-    font-weight: 400;
-    color: #1a355c;
-    letter-spacing: 1px;
+    font-family:'Katibeh', serif;
+    font-size:40px;
+    font-weight:400;
+    color:#1a355c;
+    letter-spacing:1px;
 }
 
 /* ================= NAV MENU ================= */
@@ -174,7 +189,7 @@ body{
 .menu > a.active { color:#79787F !important; }
 .menu > a::after,
 .menu > .menu-info > a::after{
-    content: "";
+    content:"";
     position:absolute;
     left:0;
     bottom:0;
@@ -257,7 +272,6 @@ body{
 .info-dropdown a:hover{ color:#79787F; }
 
 /* ============= MAIN PANEL (LOGIN) ============= */
-
 .main-panel{
     background:#5c5950;
     padding:60px 0 80px;
@@ -309,8 +323,6 @@ body{
 
 /* JUDUL "Log in" */
 .login-title{
-    align-items:center;
-    justify-content:center;
     font-family:"Great Vibes", cursive;
     font-size:40px;
     margin-bottom:30px;
@@ -350,16 +362,12 @@ body{
     border-radius:10px;
     border:2px solid #000;
     background:#e6c660;
-    align-items:center;
-    justify-content:center;
     font-size:26px;
     font-weight:400;
     cursor:pointer;
     font-family:"Katibeh", sans-serif;
 }
-.btn-login:hover{
-    filter:brightness(0.95);
-}
+.btn-login:hover{ filter:brightness(0.95); }
 
 /* LINK BAWAH */
 .login-footer-links{
@@ -373,12 +381,9 @@ body{
     text-decoration:none;
     font-weight:600;
 }
-.login-footer-links a:hover{
-    text-decoration:underline;
-}
+.login-footer-links a:hover{ text-decoration:underline; }
 
 /* ============= FOOTER ============= */
-
 .footer-full{
     background:#CBC9D3;
     padding:12px 0;
@@ -392,60 +397,37 @@ body{
     align-items:flex-start;
     font-family:"Gantari", sans-serif;
 }
-
-.footer-left{
-    display:flex;
-    gap:10px;
-}
-.footer-logo{
-    height:65px;
-}
-.footer-address{
-    line-height:1.2;
-}
+.footer-left{ display:flex; gap:10px; }
+.footer-logo{ height:65px; }
+.footer-address{ line-height:1.2; }
 .footer-address b{
     color:#1a355c;
     font-size:22px;
     font-family:Georgia, serif;
 }
-
-.footer-right {
-    display: grid;
-    grid-template-columns: 0.5fr 0.5fr; /* dua kolom */
-    grid-template-rows: auto auto; /* dua baris */
-    gap: 20px 18px; /* jarak antar item: vertical | horizontal */
-    align-items: center;
+.footer-right{
+    display:grid;
+    grid-template-columns:0.5fr 0.5fr;
+    grid-template-rows:auto auto;
+    gap:20px 18px;
+    align-items:center;
 }
+.footer-item{ display:flex; align-items:center; gap:10px; }
+.footer-icon{ width:22px; height:auto; }
 
-.footer-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.footer-icon {
-    width: 22px;  /* ukuran icon sesuai foto */
-    height: auto;
-}
-
-/* ================= SEARCH OVERLAY (SETENGAH HALAMAN) ================= */
-.search-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.25);
-    display: none;
-    justify-content: flex-start;
-    align-items: stretch;
-    z-index: 9999;
+/* ================= SEARCH OVERLAY ================= */
+.search-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.25);
+    display:none;
+    justify-content:flex-start;
+    align-items:stretch;
+    z-index:9999;
     animation: fadeIn .3s ease;
 }
-
-@keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
-}
-/* panel abu-abu 50% tinggi layar, di atas, full width */
-.search-panel {
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+.search-panel{
     background:#f5f5f5;
     width:100%;
     height:50vh;
@@ -454,16 +436,9 @@ body{
     align-items:center;
     padding-top:80px;
     position:relative;
-    animation: fadeIn .3s ease
 }
-@keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
-}
-
-/* tombol X bulat di pojok kanan atas panel */
-.search-close {
-    position: absolute;
+.search-close{
+    position:absolute;
     top:25px;
     right:40px;
     font-size:30px;
@@ -477,83 +452,61 @@ body{
     justify-content:center;
     align-items:center;
 }
-
-.search-container {
-    width: 70%;
-    max-width: 900px;
+.search-container{ width:70%; max-width:900px; }
+.search-input-wrapper{ position:relative; width:100%; }
+.search-input{
+    width:100%;
+    border:none;
+    border-bottom:2px solid #333;
+    background:transparent;
+    font-size:28px;
+    font-family:"Karma", serif;
+    padding:10px 0;
+    outline:none;
 }
-
-.search-container label {
-    font-size: 32px;
-    font-family: "Karma", serif;
-    margin-bottom: 12px;
-    display: block;
+.search-icon{
+    position:absolute;
+    right:10px;
+    top:8px;
+    font-size:30px;
+    cursor:pointer;
 }
-
-.search-input-wrapper {
-    position: relative;
-    width: 100%;
+.search-button{
+    margin-top:40px;
+    background:#7a6b23;
+    color:#fff;
+    border:none;
+    padding:14px 60px;
+    font-size:20px;
+    font-family:"Karma", serif;
+    border-radius:28px;
+    cursor:pointer;
+    transition:.3s ease;
 }
-
-.search-input {
-    width: 100%;
-    border: none;
-    border-bottom: 2px solid #333;
-    background: transparent;
-    font-size: 28px;
-    font-family: "Karma", serif;
-    padding: 10px 0;
-    outline: none;
-}
-
-.search-icon {
-    position: absolute;
-    right: 10px;
-    top: 8px;
-    font-size: 30px;
-    cursor: pointer;
-}
-
-.search-button {
-    margin-top: 40px;
-    background: #7a6b23;
-    color: #fff;
-    border: none;
-    padding: 14px 60px;
-    font-size: 20px;
-    font-family: "Karma", serif;
-    border-radius: 28px;
-    cursor: pointer;
-    transition: .3s ease;
-}
-.search-button:hover { background: #64581d; }
-
-/* HASIL PENCARIAN DI BAWAH INPUT */
+.search-button:hover{ background:#64581d; }
 .search-results{
-    margin-top: 28px;
-    max-height: 35vh;
-    overflow-y: auto;
-    font-family: "Jaldi", sans-serif;
-    font-size: 16px;
+    margin-top:28px;
+    max-height:35vh;
+    overflow-y:auto;
+    font-family:"Jaldi", sans-serif;
+    font-size:16px;
 }
 .search-result-item{
-    padding: 10px 0;
-    border-bottom: 1px solid #ccc;
-    cursor: pointer;
+    padding:10px 0;
+    border-bottom:1px solid #ccc;
+    cursor:pointer;
 }
-.search-result-item-title{
-    font-weight: 700;
-}
+.search-result-item-title{ font-weight:700; }
 .search-noresult{
-    color: #777;
-    font-style: italic;
-    margin-top: 10px;
+    color:#777;
+    font-style:italic;
+    margin-top:10px;
 }
 </style>
 </head>
 <body>
 
-<!-- TOPBAR (UPDATED) -->
+<!-- TOPBAR -->
 <div class="topbar">
     <div class="topbar-content">
         <div class="topbar-left">
@@ -563,28 +516,23 @@ body{
             <a href="#" onclick="openSearch();return false;">Search</a>
         </div>
         <div class="topbar-right">
-
             <div class="topbar-item">
-                <img src="assets/icons/location.png" class="topbar-icon">
+                <img src="assets/icons/location.png" class="topbar-icon" alt="">
                 <span>JL. Lingkar Salatiga - Pulutan</span>
             </div>
-
             <div class="topbar-item">
-                <img src="assets/icons/phone.png" class="topbar-icon">
+                <img src="assets/icons/phone.png" class="topbar-icon" alt="">
                 <span>(+62) 0123456</span>
             </div>
-
         </div>
-
     </div>
 </div>
 
 <!-- NAVBAR -->
 <div class="navbar-full">
     <div class="nav-container">
-
         <div class="brand">
-            <img src="assets/images/logo.png">
+            <img src="assets/images/logo.png" alt="">
             <div>
                 <span class="pmb-title">PMB</span>
                 <span class="udsa-title">UDSA</span>
@@ -597,11 +545,12 @@ body{
             <a href="biaya.php">Biaya</a>
 
             <!-- MENU INFO DROPDOWN -->
-            <div class="menu-info">
+             <div class="menu-info">
                 <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
                 <div class="info-dropdown">
                     <a href="info.php">Jadwal Penerimaan</a>
                     <a href="pengumuman.php">Pengumuman</a>
+                    <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
                 </div>
             </div>
 
@@ -611,7 +560,7 @@ body{
     </div>
 </div>
 
-<!-- MAIN LOGIN (TIDAK DIUBAH) -->
+<!-- MAIN LOGIN -->
 <div class="main-panel">
     <div class="wrapper">
 
@@ -627,8 +576,13 @@ body{
             <div class="login-card">
 
                 <div class="login-title">Log in</div>
+<?php if ($login_err !== ""): ?>
+  <div style="margin:10px 0 18px; padding:10px 12px; border:2px solid #cc0000; border-radius:10px; font-family:\"Gantari\", sans-serif; font-size:14px; color:#000; background:#ffe5e5;">
+    <?= htmlspecialchars($login_err) ?>
+  </div>
+<?php endif; ?>
 
-                <form action="snbp.php" method="post">
+                <form action="login.php" method="post">
                     <div class="login-group">
                         <input type="text" name="userid" class="login-input" placeholder="ID Pendaftaran/ email">
                     </div>
@@ -642,7 +596,7 @@ body{
                     <div class="login-footer-links">
                         <span>Forget your password?</span>
                         <span>Don't have an account yet?<br>
-                            <a href="registrasi.php">Create account</a>
+                            <a href="#">Create account</a>
                         </span>
                     </div>
                 </form>
@@ -653,7 +607,40 @@ body{
     </div>
 </div>
 
-<!-- FOOTER (TIDAK DIUBAH) -->
+<!-- FOOTER -->
+<div class="footer-full">
+    <div class="footer-container">
+        <div class="footer-left">
+            <img src="assets/images/logo.png" class="footer-logo" alt="">
+            <div class="footer-address">
+                <b>UDSA</b><br>
+                Jln. Lingkar Salatiga KM 2 Pulutan<br>
+                Kota Salatiga, Jawa Tengah
+            </div>
+        </div>
+
+        <div class="footer-right">
+            <div class="footer-item">
+                <img src="assets/icons/ig.png" class="footer-icon" alt="">
+                <span>@udsa_salatiga</span>
+            </div>
+            <div class="footer-item">
+                <img src="assets/icons/yt.png" class="footer-icon" alt="">
+                <span>UDSA SALATIGA</span>
+            </div>
+            <div class="footer-item">
+                <img src="assets/icons/telp.png" class="footer-icon" alt="">
+                <span>(+62) 0123456</span>
+            </div>
+            <div class="footer-item">
+                <img src="assets/icons/mail.png" class="footer-icon" alt="">
+                <span>pmb@udsasalatiga.ac.id</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay">
     <div class="search-panel">
         <div class="search-close" onclick="closeSearch()">X</div>
@@ -665,14 +652,12 @@ body{
             </div>
 
             <button class="search-button" onclick="doSearch()">Search</button>
-
             <div id="searchResults" class="search-results"></div>
         </div>
     </div>
 </div>
 
 <script>
-// ================== DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH ==================
 const NAV_PAGES = [
     { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
     { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
@@ -703,7 +688,6 @@ function closeSearch(){
     if (input) input.value = "";
 }
 
-/* FUNCTION SEARCH NAVBAR PAGES */
 function doSearch(){
     const input = document.getElementById("searchInput");
     const keyword = (input.value || "").trim().toLowerCase();
@@ -735,7 +719,6 @@ function doSearch(){
     });
 }
 
-// ENTER untuk search
 document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById("searchInput");
     if (input) {
@@ -747,7 +730,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-/* opsional: tekan ESC untuk tutup search */
+
 document.addEventListener("keydown", (e) => {
     if(e.key === "Escape"){
         const overlay = document.getElementById("searchOverlay");

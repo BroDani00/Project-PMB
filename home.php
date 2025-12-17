@@ -908,13 +908,12 @@ body{
                 <div class="info-dropdown">
                     <a href="info.php">Jadwal Penerimaan</a>
                     <a href="pengumuman.php">Pengumuman</a>
+                    <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
                 </div>
             </div>
 
             <a href="daftar.php">Daftar</a>
-
-            <!-- ✅ INJEK: link dinamis -->
-            <a href="<?= htmlspecialchars($kartuHref) ?>" class="login">Kartu Peserta</a>
+            <a href="login.php" class="login">Login</a>
         </div>
     </div>
 </div>
