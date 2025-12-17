@@ -563,7 +563,7 @@ body{
                             <b>Pengumuman :</b> 18 Maret 2026
                         </div>
                         <div class="jalur-footer">
-                            <a href="login.php">
+                            <a href="snbp.php">
                                 <button class="btn-jalur">KLIK DISINI</button>
                             </a>
                         </div>
@@ -579,7 +579,7 @@ body{
                             <b>Pengumuman :</b> 28 Mei 2026
                         </div>
                         <div class="jalur-footer">
-                            <a href="login.php">
+                            <a href=snbp.php">
                                 <button class="btn-jalur">KLIK DISINI</button>
                             </a>>
                         </div>
@@ -611,7 +611,7 @@ body{
                             <b>Pengumuman :</b> 30 Juni 2025
                         </div>
                         <div class="jalur-footer">
-                            <a href="login.php">
+                            <a href="snbp.php">
                                 <button class="btn-jalur">KLIK DISINI</button>
                             </a>
                         </div>
