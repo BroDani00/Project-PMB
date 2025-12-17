@@ -719,8 +719,8 @@ body{
 
           <div class="side-menu">
             <a class="side-link active" href="dashboard.php">Dashboard</a>
-            <a class="side-link" href="data_diri.php">Data Diri</a>
-            <a class="side-link" href="upload_berkas.php">Upload Berkas</a>
+            <a class="side-link" href="kartu.php">Data Diri</a>
+            <a class="side-link" href="snbp.php">Upload Berkas</a>
             <a class="side-link" href="pengumuman.php">Pengumuman</a>
           </div>
         </div>
