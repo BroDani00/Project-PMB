@@ -4,6 +4,18 @@ require 'koneksi.php';
 
 $err = "";
 
+// DAFTAR PRODI (dipakai untuk prodi1 & prodi2)
+$daftar_prodi = [
+    "Teknik Informatika",
+    "Sistem Informasi",
+    "Manajemen",
+    "Akuntansi",
+    "Pendidikan Matematika",
+    "Pendidikan Bahasa Inggris",
+    "Hukum",
+    "Ilmu Komunikasi"
+];
+
 // fungsi untuk membuat soal captcha baru
 function generateCaptcha() {
     $a = rand(1, 9);
@@ -25,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email       = trim($_POST['email'] ?? '');
     $hp          = trim($_POST['hp'] ?? '');
 
-    $tgllahir_raw = trim($_POST['tgllahir'] ?? '');  // dd-mm-yyyy
+    $tgllahir_raw = trim($_POST['tgllahir'] ?? '');
     $tempatlahir  = trim($_POST['tempatlahir'] ?? '');
 
     $asal       = trim($_POST['asal'] ?? '');
@@ -40,14 +52,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $captcha_input = trim($_POST['captcha'] ?? '');
     $expected = $_SESSION['captcha_answer'] ?? null;
 
-    // konversi tgllahir: dd-mm-yyyy -> Y-m-d (DATE MySQL)
+    // konversi tgllahir: dd-mm-yyyy -> Y-m-d
     $tgllahir = null;
     if ($tgllahir_raw !== '') {
         $dt = DateTime::createFromFormat('d-m-Y', $tgllahir_raw);
         if ($dt) $tgllahir = $dt->format('Y-m-d');
     }
 
-    // validasi captcha (silent, tanpa notif HTML)
     if ($expected === null || $captcha_input === '' || !ctype_digit($captcha_input) || (int)$captcha_input !== (int)$expected) {
         $err = "captcha_salah";
         generateCaptcha();
@@ -55,8 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $err = "wajib_isi";
         generateCaptcha();
     } else {
-
-        // INSERT FULL kolom
         $stmt = $conn->prepare("
             INSERT INTO pendaftaran_snbp
             (nama, nisn, email, hp, tgllahir, tempatlahir, asal,
@@ -65,25 +74,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
-        if (!$stmt) {
-            die('Gagal prepare statement: ' . $conn->error);
-        }
+        if (!$stmt) die('Gagal prepare statement: ' . $conn->error);
 
         $stmt->bind_param(
             "sssssssssssss",
-            $nama,
-            $nisn,
-            $email,
-            $hp,
-            $tgllahir,
-            $tempatlahir,
-            $asal,
-            $provinsi,
-            $kabupaten,
-            $kecamatan,
-            $alamat,
-            $prodi1,
-            $prodi2
+            $nama, $nisn, $email, $hp, $tgllahir, $tempatlahir, $asal,
+            $provinsi, $kabupaten, $kecamatan, $alamat, $prodi1, $prodi2
         );
 
         if ($stmt->execute()) {
@@ -91,13 +87,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->close();
             $conn->close();
 
-            // reset captcha (opsional)
             unset($_SESSION['captcha_a'], $_SESSION['captcha_b'], $_SESSION['captcha_answer']);
-
             header("Location: kartu.php?id=" . $last_id);
             exit;
         } else {
-            // silent juga (kalau mau debug, sementara bisa die(...) )
             $err = "db_error";
             generateCaptcha();
         }
@@ -663,28 +656,24 @@ body{
 
             <div class="form-group">
               <label class="form-label" for="prodi1">Pilihan Prodi 1</label>
-              <select id="prodi1" name="prodi1" class="form-select">
-                <option value="">Pilih Prodi</option>
-                <option>S1 Teknologi Informasi</option>
-                <option>S1 Sistem Informasi</option>
-                <option>S1 Data Science</option>
-                <option>S1 Matematika</option>
-                <option>S1 Fisika</option>
+              <select id="prodi1" name="prodi1" class="form-select" required>
+                <option value="">-- Pilih Prodi --</option>
+                <?php foreach($daftar_prodi as $prodi): ?>
+                  <option value="<?= htmlspecialchars($prodi) ?>"><?= htmlspecialchars($prodi) ?></option>
+                <?php endforeach; ?>
               </select>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="prodi2">Pilihan Prodi 2</label>
-              <select id="prodi2" name="prodi2" class="form-select">
-                <option value="">Pilih Prodi</option>
-                <option>S1 Teknologi Informasi</option>
-                <option>S1 Sistem Informasi</option>
-                <option>S1 Data Science</option>
-                <option>S1 Matematika</option>
-                <option>S1 Biologi</option>
-                <option>S1 Fisika</option>
+              <select id="prodi2" name="prodi2" class="form-select" required>
+                <option value="">-- Pilih Prodi --</option>
+                <?php foreach($daftar_prodi as $prodi): ?>
+                  <option value="<?= htmlspecialchars($prodi) ?>"><?= htmlspecialchars($prodi) ?></option>
+                <?php endforeach; ?>
               </select>
             </div>
+
 
             <!-- CAPTCHA -->
             <div class="kode-group">
@@ -948,6 +937,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadProvinces();
 });
+const prodi1 = document.querySelector('select[name="prodi1"]');
+const prodi2 = document.querySelector('select[name="prodi2"]');
+
+function syncProdi() {
+  [...prodi2.options].forEach(opt => {
+    opt.disabled = opt.value && opt.value === prodi1.value;
+  });
+}
+
+prodi1.addEventListener("change", syncProdi);
 </script>
 
 </body>

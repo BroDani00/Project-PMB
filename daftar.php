@@ -595,7 +595,7 @@ body{
                             <b>Pengumuman :</b> 27 Maret 2025
                         </div>
                         <div class="jalur-footer">
-                            <a href="login.php">
+                            <a href="snbp.php">
                                 <button class="btn-jalur">KLIK DISINI</button>
                             </a>
                         </div>
