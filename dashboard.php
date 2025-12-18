@@ -227,7 +227,10 @@ body{font-family:sans-serif;background:#f6f2d9;color:#333;}
           <div class="side-menu">
             <a class="side-link active" href="dashboard.php">Dashboard</a>
             <a class="side-link" href="<?= htmlspecialchars($kartuHref) ?>">Data Diri</a>
-            <a class="side-link" href="snbp.php">Upload Berkas</a>
+
+            <!-- ✅ INJEK: Update Data Diri diarahkan ke snbp.php dengan id -->
+            <a class="side-link" href="snbp.php?id=<?= urlencode((string)$user['id']) ?>">Update Data Diri</a>
+
             <a class="side-link" href="pengumuman.php">Pengumuman</a>
           </div>
         </div>
@@ -254,7 +257,7 @@ body{font-family:sans-serif;background:#f6f2d9;color:#333;}
                   <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                   <path d="M7 12l3 3 7-7"></path>
                 </svg>
-                <span>UPLOAD DOKUMEN</span>
+                <span>UPDATE DATA DIRI</span>
               </div>
 
               <div class="progress-item">

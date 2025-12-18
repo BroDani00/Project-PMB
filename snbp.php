@@ -4,10 +4,27 @@ require 'koneksi.php';
 
 $err = "";
 
+// ✅ INJEK: helper escape
+function e($v){ return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8'); }
+
 // ✅ INJEK: tombol auth (Login/Dashboard) + dipakai juga untuk search overlay
 $isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
 $authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
 $authText   = $isLoggedIn ? "Dashboard" : "Login";
+
+// ✅ INJEK: ambil riwayat data jika sudah pernah daftar (berdasarkan session)
+$riwayat = null;
+if (!empty($_SESSION['last_pendaftaran_id'])) {
+    $pid = (int)$_SESSION['last_pendaftaran_id'];
+    $st = $conn->prepare("SELECT * FROM pendaftaran_snbp WHERE id = ? LIMIT 1");
+    if ($st) {
+        $st->bind_param("i", $pid);
+        $st->execute();
+        $rs = $st->get_result();
+        $riwayat = $rs ? $rs->fetch_assoc() : null;
+        $st->close();
+    }
+}
 
 // DAFTAR PRODI (dipakai untuk prodi1 & prodi2)
 $daftar_prodi = [
@@ -125,6 +142,12 @@ $kartuHref = "kartu.php";
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
 }
+
+// ✅ INJEK: nilai default form dari riwayat (kalau ada) / dari POST (kalau submit gagal)
+$val = function($key) use ($riwayat) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') return $_POST[$key] ?? '';
+    return $riwayat[$key] ?? '';
+};
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -626,6 +649,18 @@ input[type="file"].form-control{
       <h1 class="form-heading">Pendaftaran Online</h1>
       <h2 class="form-subtitle">Jalur SNPMB SNBP</h2>
 
+      <!-- ✅ INJEK: info riwayat singkat (tidak merubah layout, hanya tambahan kecil) -->
+      <?php if (!empty($riwayat)): ?>
+        <div style="margin-bottom:18px;padding:12px 16px;border:2px solid #000;background:#fafafa;font-family:'Katibeh',serif;">
+          <div style="font-size:22px;line-height:1.1;">Riwayat ditemukan (data kamu sudah pernah diisi).</div>
+          <div style="font-size:18px;line-height:1.2;">
+            Nama: <b><?= e($riwayat['nama'] ?? '-') ?></b> |
+            NISN: <b><?= e($riwayat['nisn'] ?? '-') ?></b> |
+            Prodi 1: <b><?= e($riwayat['prodi1'] ?? '-') ?></b>
+          </div>
+        </div>
+      <?php endif; ?>
+
       <form action="" method="post" enctype="multipart/form-data">
         <div class="form-grid">
 
@@ -633,37 +668,44 @@ input[type="file"].form-control{
           <div>
             <div class="form-group">
               <label class="form-label" for="nama">Nama</label>
-              <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama Lengkap">
+              <input type="text" id="nama" name="nama" class="form-control" placeholder="Nama Lengkap"
+                     value="<?= e($val('nama')) ?>">
             </div>
 
             <div class="form-group">
               <label class="form-label" for="nisn">NISN</label>
-              <input type="text" id="nisn" name="nisn" class="form-control" placeholder="NISN">
+              <input type="text" id="nisn" name="nisn" class="form-control" placeholder="NISN"
+                     value="<?= e($val('nisn')) ?>">
             </div>
 
             <div class="form-group">
               <label class="form-label" for="email">Email</label>
-              <input type="email" id="email" name="email" class="form-control" placeholder="Email">
+              <input type="email" id="email" name="email" class="form-control" placeholder="Email"
+                     value="<?= e($val('email')) ?>">
             </div>
 
             <div class="form-group">
               <label class="form-label" for="tgllahir">Tanggal Lahir</label>
-              <input type="date" id="tgllahir" name="tgllahir" class="form-control" placeholder="dd-mm-yy">
+              <input type="date" id="tgllahir" name="tgllahir" class="form-control" placeholder="dd-mm-yy"
+                     value="<?= e($val('tgllahir')) ?>">
             </div>
 
             <div class="form-group">
               <label class="form-label" for="tempatlahir">Tempat Lahir</label>
-              <input type="text" id="tempatlahir" name="tempatlahir" class="form-control" placeholder="">
+              <input type="text" id="tempatlahir" name="tempatlahir" class="form-control" placeholder=""
+                     value="<?= e($val('tempatlahir')) ?>">
             </div>
 
             <div class="form-group">
               <label class="form-label" for="hp">No. HP<br>(WA Aktif)</label>
-              <input type="text" id="hp" name="hp" class="form-control" placeholder="">
+              <input type="text" id="hp" name="hp" class="form-control" placeholder=""
+                     value="<?= e($val('hp')) ?>">
             </div>
 
             <div class="form-group">
               <label class="form-label" for="asal">Asal Sekolah</label>
-              <input type="text" id="asal" name="asal" class="form-control" placeholder="">
+              <input type="text" id="asal" name="asal" class="form-control" placeholder=""
+                     value="<?= e($val('asal')) ?>">
             </div>
           </div>
 
@@ -676,28 +718,29 @@ input[type="file"].form-control{
 
             <div class="form-group">
               <label class="form-label" for="provinsi">Provinsi</label>
-              <select id="provinsi" name="provinsi" class="form-select">
+              <select id="provinsi" name="provinsi" class="form-select" data-selected="<?= e($val('provinsi')) ?>">
                 <option value="">Pilih Provinsi</option>
               </select>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="kabupaten">Kabupaten</label>
-              <select id="kabupaten" name="kabupaten" class="form-select" disabled>
+              <select id="kabupaten" name="kabupaten" class="form-select" disabled data-selected="<?= e($val('kabupaten')) ?>">
                 <option value="">Pilih Kabupaten/Kota</option>
               </select>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="kecamatan">Kecamatan</label>
-              <select id="kecamatan" name="kecamatan" class="form-select" disabled>
+              <select id="kecamatan" name="kecamatan" class="form-select" disabled data-selected="<?= e($val('kecamatan')) ?>">
                 <option value="">Pilih Kecamatan</option>
               </select>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="alamat">Alamat</label>
-              <input type="text" id="alamat" name="alamat" class="form-control" placeholder="">
+              <input type="text" id="alamat" name="alamat" class="form-control" placeholder=""
+                     value="<?= e($val('alamat')) ?>">
             </div>
 
             <div class="form-group">
@@ -705,7 +748,9 @@ input[type="file"].form-control{
               <select id="prodi1" name="prodi1" class="form-select" required>
                 <option value="">Pilih Prodi</option>
                 <?php foreach($daftar_prodi as $prodi): ?>
-                  <option value="<?= htmlspecialchars($prodi) ?>"><?= htmlspecialchars($prodi) ?></option>
+                  <option value="<?= htmlspecialchars($prodi) ?>" <?= ($val('prodi1') === $prodi) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($prodi) ?>
+                  </option>
                 <?php endforeach; ?>
               </select>
             </div>
@@ -715,7 +760,9 @@ input[type="file"].form-control{
               <select id="prodi2" name="prodi2" class="form-select" required>
                 <option value="">Pilih Prodi</option>
                 <?php foreach($daftar_prodi as $prodi): ?>
-                  <option value="<?= htmlspecialchars($prodi) ?>"><?= htmlspecialchars($prodi) ?></option>
+                  <option value="<?= htmlspecialchars($prodi) ?>" <?= ($val('prodi2') === $prodi) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($prodi) ?>
+                  </option>
                 <?php endforeach; ?>
               </select>
             </div>
@@ -879,6 +926,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const API_BASE = "wilayah_proxy.php?path=";
 
+  // ✅ INJEK: nilai riwayat untuk auto-select
+  const selectedProv = (provSelect.dataset.selected || "").trim();
+  const selectedKab  = (kabSelect.dataset.selected || "").trim();
+  const selectedKec  = (kecSelect.dataset.selected || "").trim();
+
   function setLoading(selectEl, placeholderText) {
     selectEl.innerHTML = `<option value="">${placeholderText}</option>`;
     selectEl.disabled = true;
@@ -894,6 +946,17 @@ document.addEventListener("DOMContentLoaded", () => {
       opt.dataset.id = item.id;
       selectEl.appendChild(opt);
     });
+  }
+
+  function selectByValue(selectEl, value) {
+    if (!value) return null;
+    const opts = [...selectEl.options];
+    const found = opts.find(o => (o.value || "").trim().toLowerCase() === value.trim().toLowerCase());
+    if (found) {
+      selectEl.value = found.value;
+      return found;
+    }
+    return null;
   }
 
   async function fetchJSON(url) {
@@ -916,6 +979,22 @@ document.addEventListener("DOMContentLoaded", () => {
       kecSelect.innerHTML = `<option value="">Pilih Kecamatan</option>`;
       kabSelect.disabled = true;
       kecSelect.disabled = true;
+
+      // ✅ INJEK: auto pilih provinsi dari riwayat lalu trigger load kab
+      const optProv = selectByValue(provSelect, selectedProv);
+      if (optProv && optProv.dataset && optProv.dataset.id) {
+        await loadRegenciesByProvinceId(optProv.dataset.id);
+
+        // ✅ INJEK: setelah kab loaded, auto pilih kab lalu trigger load kec
+        const optKab = selectByValue(kabSelect, selectedKab);
+        if (optKab && optKab.dataset && optKab.dataset.id) {
+          await loadDistrictsByRegencyId(optKab.dataset.id);
+
+          // ✅ INJEK: setelah kec loaded, auto pilih kec
+          selectByValue(kecSelect, selectedKec);
+        }
+      }
+
     } catch (e) {
       provSelect.innerHTML = `<option value="">Gagal memuat provinsi</option>`;
       console.error(e);
@@ -990,7 +1069,11 @@ function syncProdi() {
     opt.disabled = opt.value && opt.value === prodi1.value;
   });
 }
-if (prodi1) prodi1.addEventListener("change", syncProdi);
+if (prodi1) {
+  prodi1.addEventListener("change", syncProdi);
+  // ✅ INJEK: jalankan sekali saat awal agar prodi2 ter-disable jika sama
+  syncProdi();
+}
 </script>
 
 </body>
