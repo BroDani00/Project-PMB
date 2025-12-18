@@ -4,7 +4,7 @@ require 'koneksi.php';
 
 $err = "";
 
-// ✅ INJEK: helper escape
+// ✅ helper escape
 function e($v){ return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8'); }
 
 // ✅ INJEK: tombol auth (Login/Dashboard) + dipakai juga untuk search overlay
@@ -12,7 +12,17 @@ $isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
 $authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
 $authText   = $isLoggedIn ? "Dashboard" : "Login";
 
-// ✅ INJEK: ambil riwayat data jika sudah pernah daftar (berdasarkan session)
+// DAFTAR PRODI (dipakai untuk prodi1 & prodi2)
+$daftar_prodi = [
+    "Teknologi Informasi",
+    "Sistem Informasi",
+    "Data Science",
+    "Biologi",
+    "Matematika",
+    "Fisika",
+];
+
+// ✅ INJEK: ambil riwayat berdasarkan session (kalau ada)
 $riwayat = null;
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $pid = (int)$_SESSION['last_pendaftaran_id'];
@@ -26,19 +36,25 @@ if (!empty($_SESSION['last_pendaftaran_id'])) {
     }
 }
 
-// DAFTAR PRODI (dipakai untuk prodi1 & prodi2)
-$daftar_prodi = [
-    "Teknologi Informasi",
-    "Sistem Informasi",
-    "Data Science",
-    "Biologi",
-    "Matematika",
-    "Fisika",
-];
+// ✅ INJEK: mode insert/update
+$mode = (!empty($riwayat) && !empty($riwayat['id'])) ? 'update' : 'insert';
+
+// ✅ INJEK: helper isi nilai (POST menang, lalu riwayat)
+$val = function($key) use ($riwayat) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') return $_POST[$key] ?? '';
+    return $riwayat[$key] ?? '';
+};
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama        = trim($_POST['nama'] ?? '');
-    $nisn        = trim($_POST['nisn'] ?? '');
+
+    // ✅ INJEK: kalau mode update, nisn ambil dari riwayat (tidak boleh berubah)
+    if ($mode === 'update') {
+        $nisn = trim(($riwayat['nisn'] ?? '') . '');
+    } else {
+        $nisn = trim($_POST['nisn'] ?? '');
+    }
+
     $email       = trim($_POST['email'] ?? '');
     $hp          = trim($_POST['hp'] ?? '');
 
@@ -68,9 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
 
         // ===== UPLOAD FOTO (opsional) =====
-        // ✅ SIMPAN DI DB: hanya NAMA FILE
-        // ✅ SIMPAN DI FOLDER: assets/upload/
+        // ✅ update: kalau ga upload foto, pakai foto lama
         $fotoDbName = null;
+        if ($mode === 'update') {
+            $fotoDbName = $riwayat['foto'] ?? null;
+        }
 
         if (!empty($_FILES['foto']['name'])) {
             $allowedExt = ['jpg', 'jpeg', 'png', 'webp'];
@@ -85,7 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!in_array($ext, $allowedExt, true)) {
                     $err = "foto_tipe";
                 } else {
-                    // ✅ folder upload baru
                     $uploadDir = __DIR__ . "/assets/upload";
                     if (!is_dir($uploadDir)) {
                         mkdir($uploadDir, 0775, true);
@@ -104,34 +121,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($err === "") {
-            $stmt = $conn->prepare("
-                INSERT INTO pendaftaran_snbp
-                (nama, nisn, email, hp, tgllahir, tempatlahir, asal,
-                 foto, provinsi, kabupaten, kecamatan, alamat, prodi1, prodi2)
-                VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ");
 
-            if (!$stmt) die('Gagal prepare statement: ' . $conn->error);
+            // ✅ MODE UPDATE
+            if ($mode === 'update') {
+                if (empty($_SESSION['last_pendaftaran_id'])) {
+                    header("Location: login.php");
+                    exit;
+                }
 
-            $stmt->bind_param(
-                "ssssssssssssss",
-                $nama, $nisn, $email, $hp, $tgllahir, $tempatlahir, $asal,
-                $fotoDbName, $provinsi, $kabupaten, $kecamatan, $alamat, $prodi1, $prodi2
-            );
-            if ($stmt->execute()) {
-                $last_id = $stmt->insert_id;
+                $pidUpdate = (int)$_SESSION['last_pendaftaran_id'];
 
-                // SIMPAN ID TERAKHIR KE SESSION -> NAVBAR "KARTU PESERTA" BISA LANGSUNG TAMPILKAN KARTU
-                $_SESSION['last_pendaftaran_id'] = $last_id;
+                $stmt = $conn->prepare("
+                    UPDATE pendaftaran_snbp SET
+                        nama = ?, nisn = ?, email = ?, hp = ?, tgllahir = ?, tempatlahir = ?, asal = ?,
+                        foto = ?, provinsi = ?, kabupaten = ?, kecamatan = ?, alamat = ?, prodi1 = ?, prodi2 = ?
+                    WHERE id = ?
+                    LIMIT 1
+                ");
+                if (!$stmt) die('Gagal prepare statement: ' . $conn->error);
 
-                $stmt->close();
-                $conn->close();
+                $stmt->bind_param(
+                    "ssssssssssssssi",
+                    $nama, $nisn, $email, $hp, $tgllahir, $tempatlahir, $asal,
+                    $fotoDbName, $provinsi, $kabupaten, $kecamatan, $alamat, $prodi1, $prodi2,
+                    $pidUpdate
+                );
 
-                header("Location: kartu.php?id=" . $last_id);
-                exit;
+                if ($stmt->execute()) {
+                    $stmt->close();
+                    $conn->close();
+                    header("Location: kartu.php?id=" . $pidUpdate);
+                    exit;
+                } else {
+                    $err = "db_error";
+                }
+
             } else {
-                $err = "db_error";
+                // ✅ MODE INSERT (kode asli)
+                $stmt = $conn->prepare("
+                    INSERT INTO pendaftaran_snbp
+                    (nama, nisn, email, hp, tgllahir, tempatlahir, asal,
+                     foto, provinsi, kabupaten, kecamatan, alamat, prodi1, prodi2)
+                    VALUES
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+
+                if (!$stmt) die('Gagal prepare statement: ' . $conn->error);
+
+                $stmt->bind_param(
+                    "ssssssssssssss",
+                    $nama, $nisn, $email, $hp, $tgllahir, $tempatlahir, $asal,
+                    $fotoDbName, $provinsi, $kabupaten, $kecamatan, $alamat, $prodi1, $prodi2
+                );
+                if ($stmt->execute()) {
+                    $last_id = $stmt->insert_id;
+
+                    $_SESSION['last_pendaftaran_id'] = $last_id;
+
+                    $stmt->close();
+                    $conn->close();
+
+                    header("Location: kartu.php?id=" . $last_id);
+                    exit;
+                } else {
+                    $err = "db_error";
+                }
             }
         }
     }
@@ -143,11 +197,8 @@ if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
 }
 
-// ✅ INJEK: nilai default form dari riwayat (kalau ada) / dari POST (kalau submit gagal)
-$val = function($key) use ($riwayat) {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') return $_POST[$key] ?? '';
-    return $riwayat[$key] ?? '';
-};
+// ✅ INJEK: flag readonly NISN
+$nisnReadonly = ($mode === 'update');
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -432,6 +483,13 @@ input[type="file"].form-control{
   background:#fafafa;
 }
 
+/* ✅ INJEK: style readonly biar kelihatan terkunci */
+.form-control[readonly]{
+  background:#e9e9e9;
+  cursor:not-allowed;
+  opacity:0.95;
+}
+
 /* BUTTON */
 .form-actions{
     margin-top:26px;
@@ -636,7 +694,7 @@ input[type="file"].form-control{
 
       <a href="daftar.php">Daftar</a>
 
-      <!-- ✅ INJEK: Login → Dashboard dinamis -->
+      <!-- ✅ Login → Dashboard dinamis -->
       <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
     </div>
   </div>
@@ -649,7 +707,7 @@ input[type="file"].form-control{
       <h1 class="form-heading">Pendaftaran Online</h1>
       <h2 class="form-subtitle">Jalur SNPMB SNBP</h2>
 
-      <!-- ✅ INJEK: info riwayat singkat (tidak merubah layout, hanya tambahan kecil) -->
+      <!-- ✅ RIWAYAT termasuk prov/kab/kec -->
       <?php if (!empty($riwayat)): ?>
         <div style="margin-bottom:18px;padding:12px 16px;border:2px solid #000;background:#fafafa;font-family:'Katibeh',serif;">
           <div style="font-size:22px;line-height:1.1;">Riwayat ditemukan (data kamu sudah pernah diisi).</div>
@@ -657,6 +715,11 @@ input[type="file"].form-control{
             Nama: <b><?= e($riwayat['nama'] ?? '-') ?></b> |
             NISN: <b><?= e($riwayat['nisn'] ?? '-') ?></b> |
             Prodi 1: <b><?= e($riwayat['prodi1'] ?? '-') ?></b>
+          </div>
+          <div style="font-size:18px;line-height:1.2;margin-top:6px;">
+            Provinsi: <b><?= e($riwayat['provinsi'] ?? '-') ?></b> |
+            Kabupaten: <b><?= e($riwayat['kabupaten'] ?? '-') ?></b> |
+            Kecamatan: <b><?= e($riwayat['kecamatan'] ?? '-') ?></b>
           </div>
         </div>
       <?php endif; ?>
@@ -674,8 +737,15 @@ input[type="file"].form-control{
 
             <div class="form-group">
               <label class="form-label" for="nisn">NISN</label>
+
+              <!-- ✅ NISN readonly saat update -->
               <input type="text" id="nisn" name="nisn" class="form-control" placeholder="NISN"
-                     value="<?= e($val('nisn')) ?>">
+                     value="<?= e($val('nisn')) ?>" <?= $nisnReadonly ? 'readonly' : '' ?>>
+
+              <!-- ✅ safety: pastikan tetap terkirim -->
+              <?php if ($nisnReadonly): ?>
+                <input type="hidden" name="nisn" value="<?= e($val('nisn')) ?>">
+              <?php endif; ?>
             </div>
 
             <div class="form-group">
@@ -773,7 +843,11 @@ input[type="file"].form-control{
 
         <div class="form-actions">
           <button type="button" class="btn btn-kembali" onclick="history.back()">Kembali</button>
-          <button type="submit" class="btn btn-daftar">Daftar</button>
+
+          <!-- ✅ tombol dinamis -->
+          <button type="submit" class="btn btn-daftar">
+            <?= ($mode === 'update') ? 'Update Data Diri' : 'Daftar' ?>
+          </button>
         </div>
       </form>
     </section>
@@ -840,7 +914,7 @@ const NAV_PAGES = [
   { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
   { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
 
-  // ✅ INJEK: Login/Dashboard dinamis untuk search overlay
+  // ✅ Login/Dashboard dinamis untuk search overlay
   {
     title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
     url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
@@ -926,7 +1000,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const API_BASE = "wilayah_proxy.php?path=";
 
-  // ✅ INJEK: nilai riwayat untuk auto-select
+  // ✅ ambil riwayat dari attribute data-selected
   const selectedProv = (provSelect.dataset.selected || "").trim();
   const selectedKab  = (kabSelect.dataset.selected || "").trim();
   const selectedKec  = (kecSelect.dataset.selected || "").trim();
@@ -965,6 +1039,25 @@ document.addEventListener("DOMContentLoaded", () => {
     return res.json();
   }
 
+  async function loadRegenciesByProvinceId(provId) {
+    setLoading(kabSelect, "Memuat Kabupaten/Kota...");
+    setLoading(kecSelect, "Pilih Kecamatan");
+
+    const kabs = await fetchJSON(`${API_BASE}regencies/${provId}.json`);
+    fillOptions(kabSelect, "Pilih Kabupaten/Kota", kabs);
+    setReady(kabSelect);
+
+    kecSelect.innerHTML = `<option value="">Pilih Kecamatan</option>`;
+    kecSelect.disabled = true;
+  }
+
+  async function loadDistrictsByRegencyId(kabId) {
+    setLoading(kecSelect, "Memuat Kecamatan...");
+    const kecs = await fetchJSON(`${API_BASE}districts/${kabId}.json`);
+    fillOptions(kecSelect, "Pilih Kecamatan", kecs);
+    setReady(kecSelect);
+  }
+
   async function loadProvinces() {
     try {
       setLoading(provSelect, "Memuat Provinsi...");
@@ -975,24 +1068,21 @@ document.addEventListener("DOMContentLoaded", () => {
       fillOptions(provSelect, "Pilih Provinsi", provs);
       setReady(provSelect);
 
-      kabSelect.innerHTML = `<option value="">Pilih Kabupaten/Kota</option>`;
-      kecSelect.innerHTML = `<option value="">Pilih Kecamatan</option>`;
-      kabSelect.disabled = true;
-      kecSelect.disabled = true;
-
-      // ✅ INJEK: auto pilih provinsi dari riwayat lalu trigger load kab
+      // ✅ auto pilih prov → load kab → auto pilih kab → load kec → auto pilih kec
       const optProv = selectByValue(provSelect, selectedProv);
       if (optProv && optProv.dataset && optProv.dataset.id) {
         await loadRegenciesByProvinceId(optProv.dataset.id);
 
-        // ✅ INJEK: setelah kab loaded, auto pilih kab lalu trigger load kec
         const optKab = selectByValue(kabSelect, selectedKab);
         if (optKab && optKab.dataset && optKab.dataset.id) {
           await loadDistrictsByRegencyId(optKab.dataset.id);
-
-          // ✅ INJEK: setelah kec loaded, auto pilih kec
           selectByValue(kecSelect, selectedKec);
         }
+      } else {
+        kabSelect.innerHTML = `<option value="">Pilih Kabupaten/Kota</option>`;
+        kecSelect.innerHTML = `<option value="">Pilih Kecamatan</option>`;
+        kabSelect.disabled = true;
+        kecSelect.disabled = true;
       }
 
     } catch (e) {
@@ -1001,36 +1091,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function loadRegenciesByProvinceId(provId) {
-    try {
-      setLoading(kabSelect, "Memuat Kabupaten/Kota...");
-      setLoading(kecSelect, "Pilih Kecamatan");
-
-      const kabs = await fetchJSON(`${API_BASE}regencies/${provId}.json`);
-      fillOptions(kabSelect, "Pilih Kabupaten/Kota", kabs);
-      setReady(kabSelect);
-
-      kecSelect.innerHTML = `<option value="">Pilih Kecamatan</option>`;
-      kecSelect.disabled = true;
-    } catch (e) {
-      kabSelect.innerHTML = `<option value="">Gagal memuat kabupaten/kota</option>`;
-      console.error(e);
-    }
-  }
-
-  async function loadDistrictsByRegencyId(kabId) {
-    try {
-      setLoading(kecSelect, "Memuat Kecamatan...");
-      const kecs = await fetchJSON(`${API_BASE}districts/${kabId}.json`);
-      fillOptions(kecSelect, "Pilih Kecamatan", kecs);
-      setReady(kecSelect);
-    } catch (e) {
-      kecSelect.innerHTML = `<option value="">Gagal memuat kecamatan</option>`;
-      console.error(e);
-    }
-  }
-
-  provSelect.addEventListener("change", () => {
+  provSelect.addEventListener("change", async () => {
     const opt = provSelect.options[provSelect.selectedIndex];
     const provId = opt?.dataset?.id;
 
@@ -1041,10 +1102,10 @@ document.addEventListener("DOMContentLoaded", () => {
       kecSelect.disabled = true;
       return;
     }
-    loadRegenciesByProvinceId(provId);
+    await loadRegenciesByProvinceId(provId);
   });
 
-  kabSelect.addEventListener("change", () => {
+  kabSelect.addEventListener("change", async () => {
     const opt = kabSelect.options[kabSelect.selectedIndex];
     const kabId = opt?.dataset?.id;
 
@@ -1053,7 +1114,7 @@ document.addEventListener("DOMContentLoaded", () => {
       kecSelect.disabled = true;
       return;
     }
-    loadDistrictsByRegencyId(kabId);
+    await loadDistrictsByRegencyId(kabId);
   });
 
   loadProvinces();
@@ -1071,7 +1132,6 @@ function syncProdi() {
 }
 if (prodi1) {
   prodi1.addEventListener("change", syncProdi);
-  // ✅ INJEK: jalankan sekali saat awal agar prodi2 ter-disable jika sama
   syncProdi();
 }
 </script>
