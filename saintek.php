@@ -6,6 +6,11 @@ $kartuHref = "kartu.php";
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
 }
+
+/* ✅ INJEK: tombol auth (Login/Dashboard) */
+$isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
+$authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
+$authText   = $isLoggedIn ? "Dashboard" : "Login";
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -186,15 +191,13 @@ body{
     transition:border .3s ease;
 }
 .menu a.login:hover{ border-color:#cc0000 !important; }
+
 /* ================= DROPDOWN INFO ================= */
-/* WRAPPER */
 .menu-info{
   position:relative;
   display:flex;
   align-items:center;
 }
-
-/* LINK INFO (TEKS + PANAH SEJAJAR) */
 .menu-info > a.info-link{
   display:inline-flex;
   align-items:center;
@@ -202,15 +205,12 @@ body{
   line-height:1;
   font-weight:400;
 }
-
-/* PANAH ▼ */
 .menu-info > a.info-link .caret{
   display:inline-block;
   font-size:12px;
   line-height:1;
   transform: translateY(-3px);
 }
-
 
 .info-dropdown{
     position:absolute;
@@ -374,9 +374,7 @@ body{
     color:#117323;
 }
 
-/* ======================= */
-/*  SMOOTH BUTTON ANIMATION */
-/* ======================= */
+/* SMOOTH BUTTON ANIMATION */
 .badge-unggul{
     background:#9b7831;
     color:#fff;
@@ -446,16 +444,6 @@ body{
     height: auto;
 }
 
-/* responsive sederhana */
-@media (max-width: 900px){
-    .favorite-grid{
-        flex-direction:column;
-    }
-    .favorite-panel{
-        margin:20px 12px;
-    }
-}
-
 /* ================= SEARCH OVERLAY (SETENGAH HALAMAN) ================= */
 .search-overlay {
     position: fixed;
@@ -473,7 +461,6 @@ body{
     to {opacity: 1;}
 }
 
-/* panel putih hanya setengah tinggi layar */
 .search-panel {
     background:#f5f5f5;
     width:100%;
@@ -485,7 +472,6 @@ body{
     position:relative;
 }
 
-/* tombol X di pojok kanan atas panel */
 .search-close {
     position: absolute;
     top:25px;
@@ -505,13 +491,6 @@ body{
 .search-container {
     width: 70%;
     max-width: 900px;
-}
-
-.search-container label {
-    font-size: 32px;
-    font-family: "Karma", serif;
-    margin-bottom: 12px;
-    display: block;
 }
 
 .search-input-wrapper {
@@ -555,7 +534,6 @@ body{
     background: #64581d;
 }
 
-/* ================= SEARCH RESULTS ================= */
 .search-results{
     margin-top: 28px;
     max-height: 35vh;
@@ -593,19 +571,15 @@ body{
             <a href="#" onclick="openSearch();return false;">Search</a>
         </div>
         <div class="topbar-right">
-
             <div class="topbar-item">
                 <img src="assets/icons/location.png" class="topbar-icon">
                 <span>JL. Lingkar Salatiga - Pulutan</span>
             </div>
-
             <div class="topbar-item">
                 <img src="assets/icons/phone.png" class="topbar-icon">
                 <span>(+62) 0123456</span>
             </div>
-
         </div>
-
     </div>
 </div>
 
@@ -626,8 +600,7 @@ body{
             <a href="prodi.php" class="active">Program Studi</a>
             <a href="biaya.php">Biaya</a>
 
-            <!-- MENU INFO DROPDOWN -->
-             <div class="menu-info">
+            <div class="menu-info">
                 <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
                 <div class="info-dropdown">
                     <a href="info.php">Jadwal Penerimaan</a>
@@ -637,7 +610,9 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
+
+            <!-- ✅ INJEK: Login -> Dashboard -->
+            <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
         </div>
     </div>
 </div>
@@ -656,7 +631,6 @@ body{
                 </div>
 
                 <div class="search-area">
-                    <!-- search di MAIN: pakai class tambahan main-search-input -->
                     <input type="text" class="search-input main-search-input" placeholder="Cari prodi...">
                     <button class="search-btn" onclick="searchProdi()">
                         <span>&#128269;</span>
@@ -764,8 +738,6 @@ body{
             </div>
 
         </div>
-
-
     </div>
 </div>
 
@@ -776,21 +748,19 @@ body{
 
         <div class="search-container">
             <div class="search-input-wrapper">
-                <!-- search di overlay: pakai overlay-search-input -->
                 <input type="text" class="overlay-search-input" placeholder="Type your search">
                 <span class="search-icon" onclick="doSearch()">🔍</span>
             </div>
 
             <button class="search-button" onclick="doSearch()">Search</button>
 
-            <!-- HASIL PENCARIAN DI BAWAH INPUT -->
             <div id="searchResults" class="search-results"></div>
         </div>
     </div>
 </div>
 
 <script>
-// ================== DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH (OVERLAY) ==================
+// ✅ INJEK: Login -> Dashboard ikut di search list
 const NAV_PAGES = [
     { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
     { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
@@ -798,7 +768,11 @@ const NAV_PAGES = [
     { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
     { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
     { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
-    { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
+    {
+        title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
+        url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
+        keywords: ["<?= $isLoggedIn ? 'dashboard' : 'login' ?>", "masuk", "akun", "profil"]
+    },
     { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
     { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];
@@ -813,12 +787,15 @@ function openSearch(){
 
 function closeSearch(){
     document.getElementById("searchOverlay").style.display="none";
+    document.getElementById("searchResults").innerHTML = "";
+    const inp = document.querySelector(".overlay-search-input");
+    if (inp) inp.value = "";
 }
 
 /* FUNCTION SEARCH NAVBAR PAGES (OVERLAY) */
 function doSearch(){
     let input = document.querySelector(".overlay-search-input");
-    let keyword = input.value.trim().toLowerCase();
+    let keyword = (input.value || "").trim().toLowerCase();
     let resultBox = document.getElementById("searchResults");
     resultBox.innerHTML = "";
 
@@ -828,8 +805,8 @@ function doSearch(){
     }
 
     const results = NAV_PAGES.filter(page => {
-        const inTitle = page.title.toLowerCase().includes(keyword);
-        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+        const inTitle = (page.title || "").toLowerCase().includes(keyword);
+        const inKeywords = (page.keywords || []).some(k => (k || "").toLowerCase().includes(keyword));
         return inTitle || inKeywords;
     });
 
@@ -841,13 +818,8 @@ function doSearch(){
     results.forEach(page => {
         const item = document.createElement("div");
         item.className = "search-result-item";
-        item.onclick = () => {
-            window.location.href = page.url;
-        };
-
-        item.innerHTML = `
-            <div class="search-result-item-title">${page.title}</div>
-        `;
+        item.onclick = () => { window.location.href = page.url; };
+        item.innerHTML = `<div class="search-result-item-title">${page.title}</div>`;
         resultBox.appendChild(item);
     });
 }
@@ -855,57 +827,48 @@ function doSearch(){
 /* SEARCH ISI MAIN: FILTER DAFTAR PRODI */
 function searchProdi(){
     const input = document.querySelector(".main-search-input");
-    const keyword = input.value.trim().toLowerCase();
+    const keyword = (input.value || "").trim().toLowerCase();
 
     const cards = document.querySelectorAll(".prodi-card");
-    let found = 0;
-
     cards.forEach(card => {
         const nama = card.querySelector(".prodi-nama").innerText.toLowerCase();
         const fakultas = card.querySelector(".prodi-fakultas").innerText.toLowerCase();
         const fullText = nama + " " + fakultas;
 
-        if (keyword === "" || fullText.includes(keyword)) {
-            card.style.display = "flex";
-            found++;
-        } else {
-            card.style.display = "none";
-        }
+        card.style.display = (keyword === "" || fullText.includes(keyword)) ? "flex" : "none";
     });
 }
 
-/* DUMMY: AKSI TOMBOL UNGGUL */
+/* AKSI TOMBOL UNGGUL */
 function goToUnggul(prodi){
-    // arahkan ke halaman prodiunggul.php dengan parameter nama prodi
     window.location.href = "prodiunggul.php?prodi=" + encodeURIComponent(prodi);
 }
 
-
 /* ENTER KEY HANDLER */
 document.addEventListener("DOMContentLoaded", () => {
-    // enter di overlay search
     const overlay = document.getElementById("searchOverlay");
     const overlayInput = document.querySelector(".overlay-search-input");
 
-    /* ENTER = SEARCH */
-    overlayInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            doSearch();
-        }
-    });
+    if (overlayInput) {
+        overlayInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                doSearch();
+            }
+        });
+    }
 
-    /* ESC = CLOSE SEARCH */
     document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && overlay.style.display === "flex") {
+        if (e.key === "Escape" && overlay && overlay.style.display === "flex") {
             closeSearch();
         }
     });
 
-    // enter di main search (prodi)
     const mainInput = document.querySelector(".main-search-input");
     if (mainInput) {
         mainInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
+                e.preventDefault();
                 searchProdi();
             }
         });

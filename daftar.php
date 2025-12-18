@@ -1,11 +1,16 @@
 <?php
 session_start();
 
-/* INJEK: link kartu peserta dinamis */
+/* ✅ INJEK: link kartu peserta dinamis */
 $kartuHref = "kartu.php";
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
 }
+
+/* ✅ INJEK: tombol auth (Login/Dashboard) */
+$isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
+$authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
+$authText   = $isLoggedIn ? "Dashboard" : "Login";
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -42,7 +47,6 @@ body{
 }
 
 /* ================= TOPBAR ================= */
-
 .topbar{
     background:#f8f6e4;
     padding:6px 0;
@@ -70,22 +74,18 @@ body{
     display: flex;
     gap: 32px;
 }
-
 .topbar-item {
     display: flex;
     align-items: center;
     gap: 6px;
 }
-
 .topbar-icon {
     width: 16px;
     height: 16px;
     opacity: 0.85;
 }
 
-
 /* ================= NAVBAR ================= */
-
 .navbar-full{ background:var(--navbar-bg); width:100%; }
 .nav-container{
     max-width:1200px;
@@ -228,30 +228,13 @@ body{
 .info-dropdown a:hover{ color:#79787F; }
 
 /* ============= MAIN: PILIHAN JALUR MASUK ============= */
-
-.main-panel{
-    background:#f6f2d9;
-}
-
-/* panel kuning besar */
-.jalur-section{
-    padding:40px 0 60px;
-}
-.jalur-wrapper{
-    max-width:1200px;
-    margin:0 auto;
-    padding:0 20px;
-}
-.jalur-panel{
-    background:#e1c681;
-    padding:30px 34px 40px;
-}
+.main-panel{ background:#f6f2d9; }
+.jalur-section{ padding:40px 0 60px; }
+.jalur-wrapper{ max-width:1200px; margin:0 auto; padding:0 20px; }
+.jalur-panel{ background:#e1c681; padding:30px 34px 40px; }
 
 /* heading */
-.jalur-heading{
-    text-align:center;
-    margin-bottom:26px;
-}
+.jalur-heading{ text-align:center; margin-bottom:26px; }
 .jalur-heading h1{
     font-family:"Katibeh", sans-serif;
     font-size:50px;
@@ -266,11 +249,7 @@ body{
 }
 
 /* grid kartu jalur */
-.jalur-grid{
-    display:flex;
-    flex-wrap:wrap;
-    gap:26px;
-}
+.jalur-grid{ display:flex; flex-wrap:wrap; gap:26px; }
 
 /* card */
 .jalur-card{
@@ -297,22 +276,17 @@ body{
     font-size:26px;
     line-height:1.9;
 }
-.jalur-body b{
-    font-weight:400;
-}
+.jalur-body b{ font-weight:400; }
 
 /* tombol */
-.jalur-footer{
-    margin-top:26px;
-    align-items: center;
-}
+.jalur-footer{ margin-top:26px; align-items:center; }
 .btn-jalur{
     border:none;
     background:#6ca5e4;
     color:#000000;
     padding:12px 36px;
     border-radius:20px;
-    text-align: center;
+    text-align:center;
     font-family:"Katibeh", sans-serif;
     font-size:22px;
     font-weight:400;
@@ -320,11 +294,7 @@ body{
 }
 
 /* ============= FOOTER ============= */
-
-.footer-full{
-    background:#CBC9D3;
-    padding:12px 0;
-}
+.footer-full{ background:#CBC9D3; padding:12px 0; }
 .footer-container{
     max-width:1200px;
     margin:auto;
@@ -334,44 +304,26 @@ body{
     align-items:flex-start;
     font-family:"Gantari", sans-serif;
 }
-
-.footer-left{
-    display:flex;
-    gap:10px;
-}
-.footer-logo{
-    height:65px;
-}
-.footer-address{
-    line-height:1.2;
-}
+.footer-left{ display:flex; gap:10px; }
+.footer-logo{ height:65px; }
+.footer-address{ line-height:1.2; }
 .footer-address b{
     color:#1a355c;
     font-size:22px;
     font-family:Georgia, serif;
 }
-
-.footer-right {
-    display: grid;
-    grid-template-columns: 0.5fr 0.5fr; /* dua kolom */
-    grid-template-rows: auto auto; /* dua baris */
-    gap: 20px 18px; /* jarak antar item: vertical | horizontal */
-    align-items: center;
+.footer-right{
+    display:grid;
+    grid-template-columns:0.5fr 0.5fr;
+    grid-template-rows:auto auto;
+    gap:20px 18px;
+    align-items:center;
 }
-
-.footer-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.footer-icon {
-    width: 22px;  /* ukuran icon sesuai foto */
-    height: auto;
-}
+.footer-item{ display:flex; align-items:center; gap:10px; }
+.footer-icon{ width:22px; height:auto; }
 
 /* ================= SEARCH OVERLAY (SETENGAH HALAMAN) ================= */
-.search-overlay {
+.search-overlay{
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.25);
@@ -381,14 +333,9 @@ body{
     z-index: 9999;
     animation: fadeIn .3s ease;
 }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
 
-@keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
-}
-
-/* panel abu-abu 50% tinggi layar, di atas, full width */
-.search-panel {
+.search-panel{
     background:#f5f5f5;
     width:100%;
     height:50vh;
@@ -398,10 +345,8 @@ body{
     padding-top:80px;
     position:relative;
 }
-
-/* tombol X bulat di pojok kanan atas panel */
-.search-close {
-    position: absolute;
+.search-close{
+    position:absolute;
     top:25px;
     right:40px;
     font-size:30px;
@@ -415,366 +360,333 @@ body{
     justify-content:center;
     align-items:center;
 }
-
-.search-container {
-    width: 70%;
-    max-width: 900px;
+.search-container{ width:70%; max-width:900px; }
+.search-input-wrapper{ position:relative; width:100%; }
+.search-input{
+    width:100%;
+    border:none;
+    border-bottom:2px solid #333;
+    background:transparent;
+    font-size:28px;
+    font-family:"Karma", serif;
+    padding:10px 0;
+    outline:none;
 }
-
-.search-container label {
-    font-size: 32px;
-    font-family: "Karma", serif;
-    margin-bottom: 12px;
-    display: block;
+.search-icon{
+    position:absolute;
+    right:10px;
+    top:8px;
+    font-size:30px;
+    cursor:pointer;
 }
-
-.search-input-wrapper {
-    position: relative;
-    width: 100%;
+.search-button{
+    margin-top:40px;
+    background:#7a6b23;
+    color:#fff;
+    border:none;
+    padding:14px 60px;
+    font-size:20px;
+    font-family:"Karma", serif;
+    border-radius:28px;
+    cursor:pointer;
+    transition:.3s ease;
 }
+.search-button:hover{ background:#64581d; }
 
-.search-input {
-    width: 100%;
-    border: none;
-    border-bottom: 2px solid #333;
-    background: transparent;
-    font-size: 28px;
-    font-family: "Karma", serif;
-    padding: 10px 0;
-    outline: none;
-}
-
-.search-icon {
-    position: absolute;
-    right: 10px;
-    top: 8px;
-    font-size: 30px;
-    cursor: pointer;
-}
-
-.search-button {
-    margin-top: 40px;
-    background: #7a6b23;
-    color: #fff;
-    border: none;
-    padding: 14px 60px;
-    font-size: 20px;
-    font-family: "Karma", serif;
-    border-radius: 28px;
-    cursor: pointer;
-    transition: .3s ease;
-}
-.search-button:hover { background: #64581d; }
-
-/* HASIL PENCARIAN DI BAWAH INPUT */
 .search-results{
-    margin-top: 28px;
-    max-height: 35vh;
-    overflow-y: auto;
-    font-family: "Jaldi", sans-serif;
-    font-size: 16px;
+    margin-top:28px;
+    max-height:35vh;
+    overflow-y:auto;
+    font-family:"Jaldi", sans-serif;
+    font-size:16px;
 }
 .search-result-item{
-    padding: 10px 0;
-    border-bottom: 1px solid #ccc;
-    cursor: pointer;
+    padding:10px 0;
+    border-bottom:1px solid #ccc;
+    cursor:pointer;
 }
-.search-result-item-title{
-    font-weight: 700;
-}
+.search-result-item-title{ font-weight:700; }
 .search-noresult{
-    color: #777;
-    font-style: italic;
-    margin-top: 10px;
+    color:#777;
+    font-style:italic;
+    margin-top:10px;
 }
 </style>
 </head>
 <body>
 
-<!-- TOPBAR (UPDATED) -->
+<!-- TOPBAR -->
 <div class="topbar">
-    <div class="topbar-content">
-        <div class="topbar-left">
-            <a href="home.php">www.udsa.ac.id</a>
-            <a href="berita.php">Berita</a>
-            <a href="career.php">Career</a>
-            <a href="#" onclick="openSearch();return false;">Search</a>
-        </div>
-        <div class="topbar-right">
-
-            <div class="topbar-item">
-                <img src="assets/icons/location.png" class="topbar-icon">
-                <span>JL. Lingkar Salatiga - Pulutan</span>
-            </div>
-
-            <div class="topbar-item">
-                <img src="assets/icons/phone.png" class="topbar-icon">
-                <span>(+62) 0123456</span>
-            </div>
-
-        </div>
-
+  <div class="topbar-content">
+    <div class="topbar-left">
+      <a href="home.php">www.udsa.ac.id</a>
+      <a href="berita.php">Berita</a>
+      <a href="career.php">Career</a>
+      <a href="#" onclick="openSearch();return false;">Search</a>
     </div>
+    <div class="topbar-right">
+      <div class="topbar-item">
+        <img src="assets/icons/location.png" class="topbar-icon" alt="">
+        <span>JL. Lingkar Salatiga - Pulutan</span>
+      </div>
+      <div class="topbar-item">
+        <img src="assets/icons/phone.png" class="topbar-icon" alt="">
+        <span>(+62) 0123456</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- NAVBAR -->
 <div class="navbar-full">
-    <div class="nav-container">
-
-        <div class="brand">
-            <img src="assets/images/logo.png">
-            <div>
-                <span class="pmb-title">PMB</span>
-                <span class="udsa-title">UDSA</span>
-            </div>
-        </div>
-
-        <div class="menu">
-            <a href="home.php">Home</a>
-            <a href="prodi.php">Program Studi</a>
-            <a href="biaya.php">Biaya</a>
-
-            <!-- MENU INFO DROPDOWN -->
-             <div class="menu-info">
-                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
-                <div class="info-dropdown">
-                    <a href="info.php">Jadwal Penerimaan</a>
-                    <a href="pengumuman.php">Pengumuman</a>
-                    <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
-                </div>
-            </div>
-
-            <a href="daftar.php" class="active">Daftar</a>
-            <a href="login.php" class="login">Login</a>
-        </div>
+  <div class="nav-container">
+    <div class="brand">
+      <img src="assets/images/logo.png" alt="">
+      <div>
+        <span class="pmb-title">PMB</span>
+        <span class="udsa-title">UDSA</span>
+      </div>
     </div>
+
+    <div class="menu">
+      <a href="home.php">Home</a>
+      <a href="prodi.php">Program Studi</a>
+      <a href="biaya.php">Biaya</a>
+
+      <!-- MENU INFO DROPDOWN -->
+      <div class="menu-info">
+        <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
+        <div class="info-dropdown">
+          <a href="info.php">Jadwal Penerimaan</a>
+          <a href="pengumuman.php">Pengumuman</a>
+          <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
+        </div>
+      </div>
+
+      <a href="daftar.php" class="active">Daftar</a>
+
+      <!-- ✅ INJEK: Login → Dashboard dinamis -->
+      <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
+    </div>
+  </div>
 </div>
 
-<!-- MAIN: PILIHAN JALUR MASUK -->
+<!-- MAIN -->
 <div class="main-panel">
-    <section class="jalur-section">
-        <div class="jalur-wrapper">
-            <div class="jalur-panel">
+  <section class="jalur-section">
+    <div class="jalur-wrapper">
+      <div class="jalur-panel">
 
-                <div class="jalur-heading">
-                    <h1>Pilihan Jalur Masuk</h1>
-                    <p>Universitas Dua Sembilan April memiliki beberapa jalur untuk Calon Mahasiswa Baru</p>
-                </div>
-
-                <div class="jalur-grid">
-
-                    <!-- SNPMB SNBP -->
-                    <div class="jalur-card">
-                        <div class="jalur-label">NASIONAL</div>
-                        <div class="jalur-nama">SNPMB SNBP</div>
-                        <div class="jalur-body">
-                            <b>Pendaftaran :</b> 06 Januari s.d. 18 Februari 2026<br>
-                            <b>Ujian :</b> Tidak Ada<br>
-                            <b>Pengumuman :</b> 18 Maret 2026
-                        </div>
-                        <div class="jalur-footer">
-                            <a href="snbp.php">
-                                <button class="btn-jalur">KLIK DISINI</button>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- SNPMB SNBT -->
-                    <div class="jalur-card">
-                        <div class="jalur-label">NASIONAL</div>
-                        <div class="jalur-nama">SNPMB SNBT</div>
-                        <div class="jalur-body">
-                            <b>Pendaftaran :</b> 13 Januari s.d. 27 Maret 2026<br>
-                            <b>Ujian :</b> 23 April - 03 Mei 2026<br>
-                            <b>Pengumuman :</b> 28 Mei 2026
-                        </div>
-                        <div class="jalur-footer">
-                            <a href="snbp.php">
-                                <button class="btn-jalur">KLIK DISINI</button>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- SPAN PTKIN -->
-                    <div class="jalur-card">
-                        <div class="jalur-label">NASIONAL</div>
-                        <div class="jalur-nama">SPAN PTKIN</div>
-                        <div class="jalur-body">
-                            <b>Pendaftaran :</b> 06 Januari s.d. 06 Maret 2025<br>
-                            <b>Ujian :</b> Tidak Ada<br>
-                            <b>Pengumuman :</b> 27 Maret 2025
-                        </div>
-                        <div class="jalur-footer">
-                            <a href="snbp.php">
-                                <button class="btn-jalur">KLIK DISINI</button>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- UM PTKIN -->
-                    <div class="jalur-card">
-                        <div class="jalur-label">NASIONAL</div>
-                        <div class="jalur-nama">UM PTKIN</div>
-                        <div class="jalur-body">
-                            <b>Pendaftaran :</b> 22 April s.d. 28 Mei 2025<br>
-                            <b>Ujian :</b> 10-12 Juni 2025 &amp; 14-18 Juni 2025<br>
-                            <b>Pengumuman :</b> 30 Juni 2025
-                        </div>
-                        <div class="jalur-footer">
-                            <a href="snbp.php">
-                                <button class="btn-jalur">KLIK DISINI</button>
-                            </a>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
+        <div class="jalur-heading">
+          <h1>Pilihan Jalur Masuk</h1>
+          <p>Universitas Dua Sembilan April memiliki beberapa jalur untuk Calon Mahasiswa Baru</p>
         </div>
-    </section>
+
+        <div class="jalur-grid">
+
+          <!-- SNPMB SNBP -->
+          <div class="jalur-card">
+            <div class="jalur-label">NASIONAL</div>
+            <div class="jalur-nama">SNPMB SNBP</div>
+            <div class="jalur-body">
+              <b>Pendaftaran :</b> 06 Januari s.d. 18 Februari 2026<br>
+              <b>Ujian :</b> Tidak Ada<br>
+              <b>Pengumuman :</b> 18 Maret 2026
+            </div>
+            <div class="jalur-footer">
+              <a href="snbp.php"><button class="btn-jalur">KLIK DISINI</button></a>
+            </div>
+          </div>
+
+          <!-- SNPMB SNBT -->
+          <div class="jalur-card">
+            <div class="jalur-label">NASIONAL</div>
+            <div class="jalur-nama">SNPMB SNBT</div>
+            <div class="jalur-body">
+              <b>Pendaftaran :</b> 13 Januari s.d. 27 Maret 2026<br>
+              <b>Ujian :</b> 23 April - 03 Mei 2026<br>
+              <b>Pengumuman :</b> 28 Mei 2026
+            </div>
+            <div class="jalur-footer">
+              <a href="snbp.php"><button class="btn-jalur">KLIK DISINI</button></a>
+            </div>
+          </div>
+
+          <!-- SPAN PTKIN -->
+          <div class="jalur-card">
+            <div class="jalur-label">NASIONAL</div>
+            <div class="jalur-nama">SPAN PTKIN</div>
+            <div class="jalur-body">
+              <b>Pendaftaran :</b> 06 Januari s.d. 06 Maret 2025<br>
+              <b>Ujian :</b> Tidak Ada<br>
+              <b>Pengumuman :</b> 27 Maret 2025
+            </div>
+            <div class="jalur-footer">
+              <a href="snbp.php"><button class="btn-jalur">KLIK DISINI</button></a>
+            </div>
+          </div>
+
+          <!-- UM PTKIN -->
+          <div class="jalur-card">
+            <div class="jalur-label">NASIONAL</div>
+            <div class="jalur-nama">UM PTKIN</div>
+            <div class="jalur-body">
+              <b>Pendaftaran :</b> 22 April s.d. 28 Mei 2025<br>
+              <b>Ujian :</b> 10-12 Juni 2025 &amp; 14-18 Juni 2025<br>
+              <b>Pengumuman :</b> 30 Juni 2025
+            </div>
+            <div class="jalur-footer">
+              <a href="snbp.php"><button class="btn-jalur">KLIK DISINI</button></a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
 </div>
 
-<!-- FOOTER (TIDAK DIUBAH) -->
+<!-- FOOTER -->
 <div class="footer-full">
-    <div class="footer-container">
-
-        <div class="footer-left">
-            <img src="assets/images/logo.png" class="footer-logo">
-            <div class="footer-address">
-                <b>UDSA</b><br>
-                Jln. Lingkar Salatiga KM 2 Pulutan<br>
-                Kota Salatiga, Jawa Tengah
-            </div>
-        </div>
-
-        <div class="footer-right">
-
-            <div class="footer-item">
-                <img src="assets/icons/ig.png" class="footer-icon">
-                <span>@udsa_salatiga</span>
-            </div>
-
-            <div class="footer-item">
-                <img src="assets/icons/yt.png" class="footer-icon">
-                <span>UDSA SALATIGA</span>
-            </div>
-
-            <div class="footer-item">
-                <img src="assets/icons/telp.png" class="footer-icon">
-                <span>(+62) 0123456</span>
-            </div>
-
-            <div class="footer-item">
-                <img src="assets/icons/mail.png" class="footer-icon">
-                <span>pmb@udsasalatiga.ac.id</span>
-            </div>
-
-        </div>
-
-
+  <div class="footer-container">
+    <div class="footer-left">
+      <img src="assets/images/logo.png" class="footer-logo" alt="">
+      <div class="footer-address">
+        <b>UDSA</b><br>
+        Jln. Lingkar Salatiga KM 2 Pulutan<br>
+        Kota Salatiga, Jawa Tengah
+      </div>
     </div>
+
+    <div class="footer-right">
+      <div class="footer-item">
+        <img src="assets/icons/ig.png" class="footer-icon" alt="">
+        <span>@udsa_salatiga</span>
+      </div>
+      <div class="footer-item">
+        <img src="assets/icons/yt.png" class="footer-icon" alt="">
+        <span>UDSA SALATIGA</span>
+      </div>
+      <div class="footer-item">
+        <img src="assets/icons/telp.png" class="footer-icon" alt="">
+        <span>(+62) 0123456</span>
+      </div>
+      <div class="footer-item">
+        <img src="assets/icons/mail.png" class="footer-icon" alt="">
+        <span>pmb@udsasalatiga.ac.id</span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- SEARCH OVERLAY (agar tombol Search topbar berfungsi) -->
+<!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay">
-    <div class="search-panel">
-        <div class="search-close" onclick="closeSearch()">X</div>
+  <div class="search-panel">
+    <div class="search-close" onclick="closeSearch()">X</div>
 
-        <div class="search-container">
-            <div class="search-input-wrapper">
-                <input id="searchInput" type="text" class="search-input" placeholder="Type your search">
-                <span class="search-icon" onclick="doSearch()">🔍</span>
-            </div>
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <input id="searchInput" type="text" class="search-input" placeholder="Type your search">
+        <span class="search-icon" onclick="doSearch()">🔍</span>
+      </div>
 
-            <button class="search-button" onclick="doSearch()">Search</button>
-
-            <div id="searchResults" class="search-results"></div>
-        </div>
+      <button class="search-button" onclick="doSearch()">Search</button>
+      <div id="searchResults" class="search-results"></div>
     </div>
+  </div>
 </div>
 
 <script>
 // ================== DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH ==================
 const NAV_PAGES = [
-    { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
-    { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
-    { title: "Biaya", url: "biaya.php", keywords: ["biaya", "uang kuliah", "ukt", "pembayaran"] },
-    { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
-    { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
-    { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
-    { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
-    { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
-    { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
+  { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
+  { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
+  { title: "Biaya", url: "biaya.php", keywords: ["biaya", "uang kuliah", "ukt", "pembayaran"] },
+  { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
+  { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
+  { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
+
+  // ✅ INJEK: Login/Dashboard dinamis untuk search overlay
+  {
+    title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
+    url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
+    keywords: ["<?= $isLoggedIn ? 'dashboard' : 'login' ?>", "masuk", "akun", "profil"]
+  },
+
+  { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
+  { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];
 
 function openSearch(){
-    const overlay = document.getElementById("searchOverlay");
-    overlay.style.display = "flex";
-    setTimeout(() => {
-        const input = document.getElementById("searchInput");
-        if(input) input.focus();
-    }, 50);
+  const overlay = document.getElementById("searchOverlay");
+  overlay.style.display = "flex";
+  setTimeout(() => {
+    const input = document.getElementById("searchInput");
+    if(input) input.focus();
+  }, 50);
 }
 
 function closeSearch(){
-    const overlay = document.getElementById("searchOverlay");
-    const input = document.getElementById("searchInput");
-    const resultBox = document.getElementById("searchResults");
-    overlay.style.display = "none";
-    resultBox.innerHTML = "";
-    if (input) input.value = "";
+  const overlay = document.getElementById("searchOverlay");
+  const input = document.getElementById("searchInput");
+  const resultBox = document.getElementById("searchResults");
+  overlay.style.display = "none";
+  resultBox.innerHTML = "";
+  if (input) input.value = "";
 }
 
 /* FUNCTION SEARCH NAVBAR PAGES */
 function doSearch(){
-    const input = document.getElementById("searchInput");
-    const keyword = (input.value || "").trim().toLowerCase();
-    const resultBox = document.getElementById("searchResults");
-    resultBox.innerHTML = "";
+  const input = document.getElementById("searchInput");
+  const keyword = (input.value || "").trim().toLowerCase();
+  const resultBox = document.getElementById("searchResults");
+  resultBox.innerHTML = "";
 
-    if(keyword === ""){
-        alert("Masukkan kata pencarian!");
-        return;
-    }
+  if(keyword === ""){
+    alert("Masukkan kata pencarian!");
+    return;
+  }
 
-    const results = NAV_PAGES.filter(page => {
-        const inTitle = page.title.toLowerCase().includes(keyword);
-        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
-        return inTitle || inKeywords;
-    });
+  const results = NAV_PAGES.filter(page => {
+    const inTitle = page.title.toLowerCase().includes(keyword);
+    const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+    return inTitle || inKeywords;
+  });
 
-    if(results.length === 0){
-        resultBox.innerHTML = '<div class="search-noresult">Halaman tidak ditemukan. Coba kata kunci lain.</div>';
-        return;
-    }
+  if(results.length === 0){
+    resultBox.innerHTML = '<div class="search-noresult">Halaman tidak ditemukan. Coba kata kunci lain.</div>';
+    return;
+  }
 
-    results.forEach(page => {
-        const item = document.createElement("div");
-        item.className = "search-result-item";
-        item.onclick = () => { window.location.href = page.url; };
-        item.innerHTML = `<div class="search-result-item-title">${page.title}</div>`;
-        resultBox.appendChild(item);
-    });
+  results.forEach(page => {
+    const item = document.createElement("div");
+    item.className = "search-result-item";
+    item.onclick = () => { window.location.href = page.url; };
+    item.innerHTML = `<div class="search-result-item-title">${page.title}</div>`;
+    resultBox.appendChild(item);
+  });
 }
 
 // ENTER untuk search
 document.addEventListener("DOMContentLoaded", () => {
-    const input = document.getElementById("searchInput");
-    if (input) {
-        input.addEventListener("keydown", function(e){
-            if(e.key === "Enter"){
-                e.preventDefault();
-                doSearch();
-            }
-        });
-    }
+  const input = document.getElementById("searchInput");
+  if (input) {
+    input.addEventListener("keydown", function(e){
+      if(e.key === "Enter"){
+        e.preventDefault();
+        doSearch();
+      }
+    });
+  }
 });
-/* opsional: tekan ESC untuk tutup search */
+
+/* ESC untuk tutup search */
 document.addEventListener("keydown", (e) => {
-    if(e.key === "Escape"){
-        const overlay = document.getElementById("searchOverlay");
-        if(overlay && overlay.style.display === "flex") closeSearch();
-    }
+  if(e.key === "Escape"){
+    const overlay = document.getElementById("searchOverlay");
+    if(overlay && overlay.style.display === "flex") closeSearch();
+  }
 });
 </script>
 

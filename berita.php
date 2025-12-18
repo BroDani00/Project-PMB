@@ -10,6 +10,11 @@ if (isset($_GET['id']) && ctype_digit($_GET['id'])) {
 }
 $kartuHref = $peserta_id ? ("kartu.php?id=" . urlencode((string)$peserta_id)) : "kartu.php";
 
+// ✅ INJEK: Login → Dashboard dinamis
+$isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
+$authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
+$authText   = $isLoggedIn ? "Dashboard" : "Login";
+
 // ====== KONEKSI DATABASE ======
 $host = "localhost";
 $user = "root";
@@ -126,7 +131,6 @@ body{
 }
 
 /* ================= TOPBAR ================= */
-
 .topbar{
     background:#f8f6e4;
     padding:6px 0;
@@ -150,26 +154,11 @@ body{
     font-size:14px;
     letter-spacing:0.3px;
 }
-.topbar-right {
-    display: flex;
-    gap: 32px;
-}
-
-.topbar-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.topbar-icon {
-    width: 16px;
-    height: 16px;
-    opacity: 0.85;
-}
-
+.topbar-right { display:flex; gap:32px; }
+.topbar-item { display:flex; align-items:center; gap:6px; }
+.topbar-icon { width:16px; height:16px; opacity:0.85; }
 
 /* ================= NAVBAR ================= */
-
 .navbar-full{ background:var(--navbar-bg); width:100%; }
 .nav-container{
     max-width:1200px;
@@ -188,7 +177,7 @@ body{
 }
 .brand img{ height:54px; }
 
-/* PMB pakai Gravitas One, UDSA pakai Katibeh */
+/* PMB + UDSA */
 .pmb-title{
     font-family: 'Gravitas One', serif;
     font-size: 30px;
@@ -205,7 +194,7 @@ body{
     letter-spacing: 1px;
 }
 
-/* ================= NAV MENU (UNDERLINE KLASIK) ================= */
+/* ================= NAV MENU ================= */
 .menu{
     display:flex;
     align-items:center;
@@ -312,7 +301,6 @@ body{
 .info-dropdown a:hover{ color:#79787F; }
 
 /* ====================== MAIN – LAPORAN ====================== */
-
 .main-panel{
     background:#f6f2d9;
     padding:45px 0 70px;
@@ -330,22 +318,16 @@ body{
     align-items:flex-start;
     font-family:"Karma", sans-serif;
 }
-.report-title-block{
-    max-width:700px;
-}
+.report-title-block{ max-width:700px; }
 .report-title{
     font-size:28px;
     font-weight:400;
     margin-bottom:10px;
 }
-.report-subtitle{
-    font-size:18px;
-}
+.report-subtitle{ font-size:18px; }
 
 /* SELECT BULAN */
-.month-select-wrapper{
-    min-width:220px;
-}
+.month-select-wrapper{ min-width:220px; position:relative; }
 .month-select{
     width:100%;
     padding:10px 16px;
@@ -353,12 +335,6 @@ body{
     border:2px solid #000;
     background:#fdfdfd;
     appearance:none;
-    -moz-appearance:none;
-    -webkit-appearance:none;
-    position:relative;
-}
-.month-select-wrapper{
-    position:relative;
 }
 .month-select-wrapper::after{
     content:"\25BE";
@@ -372,8 +348,7 @@ body{
 
 /* BAR JUDUL BULAN */
 .report-month-bar{
-    margin:0 40px;
-    margin-bottom:26px;
+    margin:0 40px 26px;
     background:#7a6b23;
     color:#fff;
     padding:10px 24px;
@@ -389,10 +364,7 @@ body{
     grid-template-columns:repeat(4, 1fr);
     gap:24px;
 }
-.summary-card{
-    color:#fff;
-    padding:26px 24px;
-}
+.summary-card{ color:#fff; padding:26px 24px; }
 .summary-title{
     font-size:20px;
     font-weight:400;
@@ -404,10 +376,7 @@ body{
     font-weight:400;
     font-family:"Karma", sans-serif;
 }
-.summary-caption{
-    margin-top:4px;
-    font-size:18px;
-}
+.summary-caption{ margin-top:4px; font-size:18px; }
 
 /* CARD COLORS */
 .summary-total{ background:#2b8ab3; }
@@ -422,19 +391,8 @@ body{
     font-weight:400;
     font-family:"Karma", sans-serif;
 }
-
-.table-wrapper{
-    margin:0 40px;
-    overflow-x:auto;
-}
-
-.report-table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:16px;
-}
-
-/* HEADER */
+.table-wrapper{ margin:0 40px; overflow-x:auto; }
+.report-table{ width:100%; border-collapse:collapse; font-size:16px; }
 .report-table thead tr{
     font-family:"Karma", sans-serif;
     background:#333335;
@@ -445,12 +403,7 @@ body{
     padding:10px 14px;
     border:1px solid #555;
 }
-.report-table th{
-    font-weight:400;
-    text-align:left;
-}
-
-/* BODY */
+.report-table th{ font-weight:400; text-align:left; }
 .report-table tbody tr:nth-child(odd){
     background:#efefef;
     font-family:"Karma", sans-serif;
@@ -461,11 +414,7 @@ body{
 }
 
 /* ============= FOOTER ============= */
-
-.footer-full{
-    background:#CBC9D3;
-    padding:12px 0;
-}
+.footer-full{ background:#CBC9D3; padding:12px 0; }
 .footer-container{
     max-width:1200px;
     margin:auto;
@@ -475,44 +424,26 @@ body{
     align-items:flex-start;
     font-family:"Gantari", sans-serif;
 }
-
-.footer-left{
-    display:flex;
-    gap:10px;
-}
-.footer-logo{
-    height:65px;
-}
-.footer-address{
-    line-height:1.2;
-}
+.footer-left{ display:flex; gap:10px; }
+.footer-logo{ height:65px; }
+.footer-address{ line-height:1.2; }
 .footer-address b{
     color:#1a355c;
     font-size:22px;
     font-family:Georgia, serif;
 }
-
-.footer-right {
-    display: grid;
+.footer-right{
+    display:grid;
     grid-template-columns: 0.5fr 0.5fr;
     grid-template-rows: auto auto;
     gap: 20px 18px;
-    align-items: center;
+    align-items:center;
 }
+.footer-item{ display:flex; align-items:center; gap:10px; }
+.footer-icon{ width:22px; height:auto; }
 
-.footer-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.footer-icon {
-    width: 22px;
-    height: auto;
-}
-
-/* ================= SEARCH OVERLAY (SETENGAH HALAMAN) ================= */
-.search-overlay {
+/* ================= SEARCH OVERLAY ================= */
+.search-overlay{
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.25);
@@ -522,14 +453,8 @@ body{
     z-index: 9999;
     animation: fadeIn .3s ease;
 }
-
-@keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
-}
-
-/* panel abu-abu 50% tinggi layar, di atas, full width */
-.search-panel {
+@keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+.search-panel{
     background:#f5f5f5;
     width:100%;
     height:50vh;
@@ -539,10 +464,8 @@ body{
     padding-top:80px;
     position:relative;
 }
-
-/* tombol X bulat di pojok kanan atas panel */
-.search-close {
-    position: absolute;
+.search-close{
+    position:absolute;
     top:25px;
     right:40px;
     font-size:30px;
@@ -556,69 +479,55 @@ body{
     justify-content:center;
     align-items:center;
 }
-
-.search-container {
-    width: 70%;
-    max-width: 900px;
-}
-
-.search-input-wrapper {
-    position: relative;
-    width: 100%;
-}
-
-.search-input {
-    width: 100%;
-    border: none;
-    border-bottom: 2px solid #333;
-    background: transparent;
-    font-size: 28px;
+.search-container{ width:70%; max-width:900px; }
+.search-input-wrapper{ position:relative; width:100%; }
+.search-input{
+    width:100%;
+    border:none;
+    border-bottom:2px solid #333;
+    background:transparent;
+    font-size:28px;
     font-family: "Karma", serif;
     padding: 10px 0;
-    outline: none;
+    outline:none;
 }
-
-.search-icon {
-    position: absolute;
-    right: 10px;
-    top: 8px;
-    font-size: 30px;
-    cursor: pointer;
+.search-icon{
+    position:absolute;
+    right:10px;
+    top:8px;
+    font-size:30px;
+    cursor:pointer;
 }
-
-.search-button {
-    margin-top: 40px;
-    background: #7a6b23;
-    color: #fff;
-    border: none;
-    padding: 14px 60px;
-    font-size: 20px;
-    font-family: "Karma", serif;
-    border-radius: 28px;
-    cursor: pointer;
-    transition: .3s ease;
+.search-button{
+    margin-top:40px;
+    background:#7a6b23;
+    color:#fff;
+    border:none;
+    padding:14px 60px;
+    font-size:20px;
+    font-family:"Karma", serif;
+    border-radius:28px;
+    cursor:pointer;
+    transition:.3s ease;
 }
-.search-button:hover { background: #64581d; }
-
+.search-button:hover { background:#64581d; }
 .search-results{
     margin-top: 28px;
     max-height: 35vh;
-    overflow-y: auto;
+    overflow-y:auto;
     font-family: "Jaldi", sans-serif;
     font-size: 16px;
 }
 .search-result-item{
-    padding: 10px 0;
-    border-bottom: 1px solid #ccc;
-    cursor: pointer;
+    padding:10px 0;
+    border-bottom:1px solid #ccc;
+    cursor:pointer;
 }
-.search-result-item-title{
-    font-weight: 700;
-}
+.search-result-item-title{ font-weight:700; }
 .search-noresult{
-    color: #777;
-    font-style: italic;
-    margin-top: 10px;
+    color:#777;
+    font-style:italic;
+    margin-top:10px;
 }
 </style>
 </head>
@@ -626,310 +535,288 @@ body{
 
 <!-- TOPBAR -->
 <div class="topbar">
-    <div class="topbar-content">
-        <div class="topbar-left">
-            <a href="home.php">www.udsa.ac.id</a>
-            <a href="berita.php">Berita</a>
-            <a href="career.php">Career</a>
-            <a href="#" onclick="openSearch();return false;">Search</a>
-        </div>
-        <div class="topbar-right">
-            <div class="topbar-item">
-                <img src="assets/icons/location.png" class="topbar-icon" alt="">
-                <span>JL. Lingkar Salatiga - Pulutan</span>
-            </div>
-
-            <div class="topbar-item">
-                <img src="assets/icons/phone.png" class="topbar-icon" alt="">
-                <span>(+62) 0123456</span>
-            </div>
-        </div>
+  <div class="topbar-content">
+    <div class="topbar-left">
+      <a href="home.php">www.udsa.ac.id</a>
+      <a href="berita.php">Berita</a>
+      <a href="career.php">Career</a>
+      <a href="#" onclick="openSearch();return false;">Search</a>
     </div>
+    <div class="topbar-right">
+      <div class="topbar-item">
+        <img src="assets/icons/location.png" class="topbar-icon" alt="">
+        <span>JL. Lingkar Salatiga - Pulutan</span>
+      </div>
+      <div class="topbar-item">
+        <img src="assets/icons/phone.png" class="topbar-icon" alt="">
+        <span>(+62) 0123456</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- NAVBAR -->
 <div class="navbar-full">
-    <div class="nav-container">
-
-        <div class="brand">
-            <img src="assets/images/logo.png" alt="">
-            <div>
-                <span class="pmb-title">PMB</span>
-                <span class="udsa-title">UDSA</span>
-            </div>
-        </div>
-
-        <div class="menu">
-            <a href="home.php">Home</a>
-            <a href="prodi.php">Program Studi</a>
-            <a href="biaya.php">Biaya</a>
-
-            <!-- MENU INFO DROPDOWN -->
-            <div class="menu">
-            <a href="home.php">Home</a>
-            <a href="prodi.php">Program Studi</a>
-            <a href="biaya.php">Biaya</a>
-
-            <!-- MENU INFO DROPDOWN -->
-             <div class="menu-info">
-                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
-                <div class="info-dropdown">
-                    <a href="info.php">Jadwal Penerimaan</a>
-                    <a href="pengumuman.php">Pengumuman</a>
-                    <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
-                </div>
-            </div>
-
-            <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
-        </div>
+  <div class="nav-container">
+    <div class="brand">
+      <img src="assets/images/logo.png" alt="">
+      <div>
+        <span class="pmb-title">PMB</span>
+        <span class="udsa-title">UDSA</span>
+      </div>
     </div>
+
+    <!-- ✅ FIX: menu jangan nested -->
+    <div class="menu">
+      <a href="home.php">Home</a>
+      <a href="prodi.php">Program Studi</a>
+      <a href="biaya.php">Biaya</a>
+
+      <div class="menu-info">
+        <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
+        <div class="info-dropdown">
+          <a href="info.php">Jadwal Penerimaan</a>
+          <a href="pengumuman.php">Pengumuman</a>
+          <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
+        </div>
+      </div>
+
+      <a href="daftar.php">Daftar</a>
+
+      <!-- ✅ INJEK: Login → Dashboard -->
+      <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
+    </div>
+  </div>
 </div>
 
 <!-- MAIN LAPORAN -->
 <div class="main-panel">
-    <div class="wrapper">
+  <div class="wrapper">
 
-        <!-- Header + Pilih Bulan -->
-        <section class="report-header">
-            <div class="report-title-block">
-                <h1 class="report-title">Laporan Bulanan PMB UDSA Tahun <?php echo htmlspecialchars($tahun_akademik_default); ?></h1>
-                <p class="report-subtitle">
-                    Ringkasan aktivitas statistik dan pendaftaran selama satu bulan
-                </p>
-            </div>
+    <section class="report-header">
+      <div class="report-title-block">
+        <h1 class="report-title">Laporan Bulanan PMB UDSA Tahun <?= htmlspecialchars($tahun_akademik_default); ?></h1>
+        <p class="report-subtitle">Ringkasan aktivitas statistik dan pendaftaran selama satu bulan</p>
+      </div>
 
-            <div class="month-select-wrapper">
-                <form method="get" id="formBulan" action="<?php echo htmlspecialchars($formAction); ?>">
-                    <!-- ✅ INJEK: biar id ikut kebawa pas ganti bulan -->
-                    <?php if ($peserta_id): ?>
-                        <input type="hidden" name="id" value="<?php echo htmlspecialchars((string)$peserta_id); ?>">
-                    <?php endif; ?>
+      <div class="month-select-wrapper">
+        <form method="get" id="formBulan" action="<?= htmlspecialchars($formAction); ?>">
+          <?php if ($peserta_id): ?>
+            <input type="hidden" name="id" value="<?= htmlspecialchars((string)$peserta_id); ?>">
+          <?php endif; ?>
 
-                    <select class="month-select" name="bulan" onchange="document.getElementById('formBulan').submit()">
-                        <option value="">Pilih bulan</option>
-                        <?php foreach($bulan_map as $num => $nama): ?>
-                            <option value="<?php echo $num; ?>" <?php if($num == $bulan_pilih) echo 'selected'; ?>>
-                                <?php echo $nama; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </form>
-            </div>
-        </section>
+          <select class="month-select" name="bulan" onchange="document.getElementById('formBulan').submit()">
+            <option value="">Pilih bulan</option>
+            <?php foreach($bulan_map as $num => $nama): ?>
+              <option value="<?= $num; ?>" <?php if($num == $bulan_pilih) echo 'selected'; ?>>
+                <?= htmlspecialchars($nama); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </form>
+      </div>
+    </section>
 
-        <!-- Bar Laporan Bulan -->
-        <div class="report-month-bar">
-            Laporan Bulan <?php echo htmlspecialchars($nama_bulan); ?>
-            <?php if(!$laporan): ?>
-                - <span style="font-weight:400;">(Belum ada data di database)</span>
-            <?php endif; ?>
-        </div>
-
-        <!-- Summary Cards -->
-        <div class="summary-row">
-            <div class="summary-card summary-total">
-                <div class="summary-title">Total Pendaftar</div>
-                <div class="summary-number"><?php echo number_format($total_pendaftar, 0, ',', '.'); ?></div>
-                <div class="summary-caption">Peserta</div>
-            </div>
-
-            <div class="summary-card summary-lolos">
-                <div class="summary-title">Lolos Seleksi</div>
-                <div class="summary-number"><?php echo number_format($total_lolos, 0, ',', '.'); ?></div>
-                <div class="summary-caption">Peserta</div>
-            </div>
-
-            <div class="summary-card summary-daftar">
-                <div class="summary-title">Daftar Ulang</div>
-                <div class="summary-number"><?php echo number_format($total_daftar_ulang, 0, ',', '.'); ?></div>
-                <div class="summary-caption">Peserta</div>
-            </div>
-
-            <div class="summary-card summary-tidak">
-                <div class="summary-title">Tidak Lolos Seleksi</div>
-                <div class="summary-number"><?php echo number_format($total_tidak_lolos, 0, ',', '.'); ?></div>
-                <div class="summary-caption">Peserta</div>
-            </div>
-        </div>
-
-        <!-- Tabel Rekap -->
-        <h2 class="report-table-title">Tabel Rekap Detail Pendaftar per Program Studi</h2>
-
-        <div class="table-wrapper">
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th>Program Studi</th>
-                        <th>Pendaftar</th>
-                        <th>Lolos Seleksi</th>
-                        <th>Daftar Ulang</th>
-                        <th>Kapasitas</th>
-                        <th>Keterangan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (count($detail_rows) > 0): ?>
-                        <?php foreach($detail_rows as $d): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($d['nama_prodi']); ?></td>
-                                <td><?php echo (int)$d['pendaftar']; ?></td>
-                                <td><?php echo (int)$d['lolos_seleksi']; ?></td>
-                                <td><?php echo (int)$d['daftar_ulang']; ?></td>
-                                <td><?php echo (int)$d['kapasitas']; ?></td>
-                                <td><?php echo htmlspecialchars($d['keterangan']); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="6" style="text-align:center;">
-                                Belum ada data detail program studi untuk bulan ini.
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-
+    <div class="report-month-bar">
+      Laporan Bulan <?= htmlspecialchars($nama_bulan); ?>
+      <?php if(!$laporan): ?>
+        - <span style="font-weight:400;">(Belum ada data di database)</span>
+      <?php endif; ?>
     </div>
+
+    <div class="summary-row">
+      <div class="summary-card summary-total">
+        <div class="summary-title">Total Pendaftar</div>
+        <div class="summary-number"><?= number_format($total_pendaftar, 0, ',', '.'); ?></div>
+        <div class="summary-caption">Peserta</div>
+      </div>
+
+      <div class="summary-card summary-lolos">
+        <div class="summary-title">Lolos Seleksi</div>
+        <div class="summary-number"><?= number_format($total_lolos, 0, ',', '.'); ?></div>
+        <div class="summary-caption">Peserta</div>
+      </div>
+
+      <div class="summary-card summary-daftar">
+        <div class="summary-title">Daftar Ulang</div>
+        <div class="summary-number"><?= number_format($total_daftar_ulang, 0, ',', '.'); ?></div>
+        <div class="summary-caption">Peserta</div>
+      </div>
+
+      <div class="summary-card summary-tidak">
+        <div class="summary-title">Tidak Lolos Seleksi</div>
+        <div class="summary-number"><?= number_format($total_tidak_lolos, 0, ',', '.'); ?></div>
+        <div class="summary-caption">Peserta</div>
+      </div>
+    </div>
+
+    <h2 class="report-table-title">Tabel Rekap Detail Pendaftar per Program Studi</h2>
+
+    <div class="table-wrapper">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Program Studi</th>
+            <th>Pendaftar</th>
+            <th>Lolos Seleksi</th>
+            <th>Daftar Ulang</th>
+            <th>Kapasitas</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (count($detail_rows) > 0): ?>
+            <?php foreach($detail_rows as $d): ?>
+              <tr>
+                <td><?= htmlspecialchars($d['nama_prodi']); ?></td>
+                <td><?= (int)$d['pendaftar']; ?></td>
+                <td><?= (int)$d['lolos_seleksi']; ?></td>
+                <td><?= (int)$d['daftar_ulang']; ?></td>
+                <td><?= (int)$d['kapasitas']; ?></td>
+                <td><?= htmlspecialchars($d['keterangan']); ?></td>
+              </tr>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <tr>
+              <td colspan="6" style="text-align:center;">Belum ada data detail program studi untuk bulan ini.</td>
+            </tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
 </div>
 
 <!-- FOOTER -->
 <div class="footer-full">
-    <div class="footer-container">
-
-        <div class="footer-left">
-            <img src="assets/images/logo.png" class="footer-logo" alt="">
-            <div class="footer-address">
-                <b>UDSA</b><br>
-                Jln. Lingkar Salatiga KM 2 Pulutan<br>
-                Kota Salatiga, Jawa Tengah
-            </div>
-        </div>
-
-        <div class="footer-right">
-            <div class="footer-item">
-                <img src="assets/icons/ig.png" class="footer-icon" alt="">
-                <span>@udsa_salatiga</span>
-            </div>
-
-            <div class="footer-item">
-                <img src="assets/icons/yt.png" class="footer-icon" alt="">
-                <span>UDSA SALATIGA</span>
-            </div>
-
-            <div class="footer-item">
-                <img src="assets/icons/telp.png" class="footer-icon" alt="">
-                <span>(+62) 0123456</span>
-            </div>
-
-            <div class="footer-item">
-                <img src="assets/icons/mail.png" class="footer-icon" alt="">
-                <span>pmb@udsasalatiga.ac.id</span>
-            </div>
-        </div>
+  <div class="footer-container">
+    <div class="footer-left">
+      <img src="assets/images/logo.png" class="footer-logo" alt="">
+      <div class="footer-address">
+        <b>UDSA</b><br>
+        Jln. Lingkar Salatiga KM 2 Pulutan<br>
+        Kota Salatiga, Jawa Tengah
+      </div>
     </div>
+
+    <div class="footer-right">
+      <div class="footer-item">
+        <img src="assets/icons/ig.png" class="footer-icon" alt="">
+        <span>@udsa_salatiga</span>
+      </div>
+      <div class="footer-item">
+        <img src="assets/icons/yt.png" class="footer-icon" alt="">
+        <span>UDSA SALATIGA</span>
+      </div>
+      <div class="footer-item">
+        <img src="assets/icons/telp.png" class="footer-icon" alt="">
+        <span>(+62) 0123456</span>
+      </div>
+      <div class="footer-item">
+        <img src="assets/icons/mail.png" class="footer-icon" alt="">
+        <span>pmb@udsasalatiga.ac.id</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay">
-    <div class="search-panel">
-        <div class="search-close" onclick="closeSearch()">X</div>
+  <div class="search-panel">
+    <div class="search-close" onclick="closeSearch()">X</div>
 
-        <div class="search-container">
-            <div class="search-input-wrapper">
-                <input id="searchInput" type="text" class="search-input" placeholder="Type your search">
-                <span class="search-icon" onclick="doSearch()">🔍</span>
-            </div>
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <input id="searchInput" type="text" class="search-input" placeholder="Type your search">
+        <span class="search-icon" onclick="doSearch()">🔍</span>
+      </div>
 
-            <button class="search-button" onclick="doSearch()">Search</button>
-            <div id="searchResults" class="search-results"></div>
-        </div>
+      <button class="search-button" onclick="doSearch()">Search</button>
+      <div id="searchResults" class="search-results"></div>
     </div>
+  </div>
 </div>
 
 <script>
-// ================== DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH ==================
+// ✅ INJEK: NAV_PAGES dinamis (Login/Dashboard)
 const NAV_PAGES = [
-    { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
-    { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
-    { title: "Biaya", url: "biaya.php", keywords: ["biaya", "uang kuliah", "ukt", "pembayaran"] },
-    { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
-    { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
-    { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
-    { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
-    { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
-    { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
+  { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
+  { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
+  { title: "Biaya", url: "biaya.php", keywords: ["biaya", "uang kuliah", "ukt", "pembayaran"] },
+  { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
+  { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
+  { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
+
+  {
+    title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
+    url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
+    keywords: ["<?= $isLoggedIn ? 'dashboard' : 'login' ?>", "masuk", "akun"]
+  },
+
+  { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
+  { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];
 
 function openSearch(){
-    const overlay = document.getElementById("searchOverlay");
-    overlay.style.display = "flex";
-    setTimeout(() => {
-        const input = document.getElementById("searchInput");
-        if(input) input.focus();
-    }, 50);
+  const overlay = document.getElementById("searchOverlay");
+  overlay.style.display = "flex";
+  setTimeout(() => document.getElementById("searchInput")?.focus(), 50);
 }
-
 function closeSearch(){
-    const overlay = document.getElementById("searchOverlay");
-    const input = document.getElementById("searchInput");
-    const resultBox = document.getElementById("searchResults");
-    overlay.style.display = "none";
-    resultBox.innerHTML = "";
-    if (input) input.value = "";
+  const overlay = document.getElementById("searchOverlay");
+  const input = document.getElementById("searchInput");
+  const resultBox = document.getElementById("searchResults");
+  overlay.style.display = "none";
+  resultBox.innerHTML = "";
+  if (input) input.value = "";
 }
-
 function doSearch(){
-    const input = document.getElementById("searchInput");
-    const keyword = (input.value || "").trim().toLowerCase();
-    const resultBox = document.getElementById("searchResults");
-    resultBox.innerHTML = "";
+  const input = document.getElementById("searchInput");
+  const keyword = (input.value || "").trim().toLowerCase();
+  const resultBox = document.getElementById("searchResults");
+  resultBox.innerHTML = "";
 
-    if(keyword === ""){
-        alert("Masukkan kata pencarian!");
-        return;
-    }
+  if(keyword === ""){
+    alert("Masukkan kata pencarian!");
+    return;
+  }
 
-    const results = NAV_PAGES.filter(page => {
-        const inTitle = page.title.toLowerCase().includes(keyword);
-        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
-        return inTitle || inKeywords;
-    });
+  const results = NAV_PAGES.filter(page => {
+    const inTitle = page.title.toLowerCase().includes(keyword);
+    const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+    return inTitle || inKeywords;
+  });
 
-    if(results.length === 0){
-        resultBox.innerHTML = '<div class="search-noresult">Halaman tidak ditemukan. Coba kata kunci lain.</div>';
-        return;
-    }
+  if(results.length === 0){
+    resultBox.innerHTML = '<div class="search-noresult">Halaman tidak ditemukan. Coba kata kunci lain.</div>';
+    return;
+  }
 
-    results.forEach(page => {
-        const item = document.createElement("div");
-        item.className = "search-result-item";
-        item.onclick = () => { window.location.href = page.url; };
-        item.innerHTML = `<div class="search-result-item-title">${page.title}</div>`;
-        resultBox.appendChild(item);
-    });
+  results.forEach(page => {
+    const item = document.createElement("div");
+    item.className = "search-result-item";
+    item.onclick = () => { window.location.href = page.url; };
+    item.innerHTML = `<div class="search-result-item-title">${page.title}</div>`;
+    resultBox.appendChild(item);
+  });
 }
 
-// ENTER untuk search
 document.addEventListener("DOMContentLoaded", () => {
-    const input = document.getElementById("searchInput");
-    if (input) {
-        input.addEventListener("keydown", function(e){
-            if(e.key === "Enter"){
-                e.preventDefault();
-                doSearch();
-            }
-        });
+  const input = document.getElementById("searchInput");
+  input?.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault();
+      doSearch();
     }
+  });
 });
 
-// ESC untuk tutup
 document.addEventListener("keydown", (e) => {
-    if(e.key === "Escape"){
-        const overlay = document.getElementById("searchOverlay");
-        if(overlay && overlay.style.display === "flex") closeSearch();
-    }
+  if(e.key === "Escape"){
+    const overlay = document.getElementById("searchOverlay");
+    if(overlay && overlay.style.display === "flex") closeSearch();
+  }
 });
 </script>
 

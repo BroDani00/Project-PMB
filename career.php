@@ -1,12 +1,19 @@
 <?php
 session_start();
 
-/* ===== INJEK: link kartu peserta dinamis dari URL (?id=) ===== */
+/* ✅ INJEK: ambil id peserta untuk link kartu (GET id atau fallback session) */
 $peserta_id = null;
 if (isset($_GET['id']) && ctype_digit($_GET['id'])) {
     $peserta_id = (int) $_GET['id'];
+} elseif (!empty($_SESSION['last_pendaftaran_id']) && ctype_digit((string)$_SESSION['last_pendaftaran_id'])) {
+    $peserta_id = (int) $_SESSION['last_pendaftaran_id'];
 }
 $kartuHref = $peserta_id ? ("kartu.php?id=" . urlencode((string)$peserta_id)) : "kartu.php";
+
+/* ✅ INJEK: Login → Dashboard dinamis */
+$isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
+$authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
+$authText   = $isLoggedIn ? "Dashboard" : "Login";
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -430,251 +437,238 @@ body{
 
 <!-- TOPBAR -->
 <div class="topbar">
-    <div class="topbar-content">
-        <div class="topbar-left">
-            <a href="home.php">www.udsa.ac.id</a>
-            <a href="berita.php">Berita</a>
-            <a href="career.php" class="active">Career</a>
-            <a href="#" onclick="openSearch();return false;">Search</a>
-        </div>
-        <div class="topbar-right">
-            <div class="topbar-item">
-                <img src="assets/icons/location.png" class="topbar-icon" alt="">
-                <span>JL. Lingkar Salatiga - Pulutan</span>
-            </div>
-            <div class="topbar-item">
-                <img src="assets/icons/phone.png" class="topbar-icon" alt="">
-                <span>(+62) 0123456</span>
-            </div>
-        </div>
+  <div class="topbar-content">
+    <div class="topbar-left">
+      <a href="home.php">www.udsa.ac.id</a>
+      <a href="berita.php">Berita</a>
+      <a href="career.php" class="active">Career</a>
+      <a href="#" onclick="openSearch();return false;">Search</a>
     </div>
+    <div class="topbar-right">
+      <div class="topbar-item">
+        <img src="assets/icons/location.png" class="topbar-icon" alt="">
+        <span>JL. Lingkar Salatiga - Pulutan</span>
+      </div>
+      <div class="topbar-item">
+        <img src="assets/icons/phone.png" class="topbar-icon" alt="">
+        <span>(+62) 0123456</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- NAVBAR -->
 <div class="navbar-full">
-    <div class="nav-container">
+  <div class="nav-container">
 
-        <div class="brand">
-            <img src="assets/images/logo.png" alt="">
-            <div>
-                <span class="pmb-title">PMB</span>
-                <span class="udsa-title">UDSA</span>
-            </div>
-        </div>
-
-        <div class="menu">
-            <a href="home.php">Home</a>
-            <a href="prodi.php">Program Studi</a>
-            <a href="biaya.php">Biaya</a>
-
-            <!-- MENU INFO DROPDOWN -->
-             <div class="menu-info">
-                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
-                <div class="info-dropdown">
-                    <a href="info.php">Jadwal Penerimaan</a>
-                    <a href="pengumuman.php">Pengumuman</a>
-                    <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
-                </div>
-            </div>
-
-            <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
-        </div>
+    <div class="brand">
+      <img src="assets/images/logo.png" alt="">
+      <div>
+        <span class="pmb-title">PMB</span>
+        <span class="udsa-title">UDSA</span>
+      </div>
     </div>
+
+    <div class="menu">
+      <a href="home.php">Home</a>
+      <a href="prodi.php">Program Studi</a>
+      <a href="biaya.php">Biaya</a>
+
+      <div class="menu-info">
+        <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
+        <div class="info-dropdown">
+          <a href="info.php">Jadwal Penerimaan</a>
+          <a href="pengumuman.php">Pengumuman</a>
+          <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
+        </div>
+      </div>
+
+      <a href="daftar.php">Daftar</a>
+
+      <!-- ✅ INJEK: Login → Dashboard -->
+      <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
+    </div>
+  </div>
 </div>
 
 <!-- MAIN: CAREER CENTER -->
 <div class="main-panel">
-    <div class="wrapper">
+  <div class="wrapper">
 
-        <section class="career-hero">
-            <h1>Career Center UDSA</h1>
-        </section>
+    <section class="career-hero">
+      <h1>Career Center UDSA</h1>
+    </section>
 
-        <section class="career-strip">
-            <div class="career-item">
-                <div class="career-icon"><span>📊</span></div>
-                <div>
-                    <div class="career-text-title">Tracer Study</div>
-                    <div class="career-text-link">Read More</div>
-                </div>
-            </div>
+    <section class="career-strip">
+      <div class="career-item">
+        <div class="career-icon"><span>📊</span></div>
+        <div>
+          <div class="career-text-title">Tracer Study</div>
+          <div class="career-text-link">Read More</div>
+        </div>
+      </div>
 
-            <div class="career-item">
-                <div class="career-icon"><span>📈</span></div>
-                <div>
-                    <div class="career-text-title">E-Legalisir</div>
-                    <div class="career-text-link">Read More</div>
-                </div>
-            </div>
+      <div class="career-item">
+        <div class="career-icon"><span>📈</span></div>
+        <div>
+          <div class="career-text-title">E-Legalisir</div>
+          <div class="career-text-link">Read More</div>
+        </div>
+      </div>
 
-            <div class="career-item">
-                <div class="career-icon"><span>🎓</span></div>
-                <div>
-                    <div class="career-text-title">Job Fair UDSA</div>
-                    <div class="career-text-link">Read More</div>
-                </div>
-            </div>
-        </section>
+      <div class="career-item">
+        <div class="career-icon"><span>🎓</span></div>
+        <div>
+          <div class="career-text-title">Job Fair UDSA</div>
+          <div class="career-text-link">Read More</div>
+        </div>
+      </div>
+    </section>
 
-        <section class="career-content">
-            <h2>Career Center UDSA</h2>
-            <p>
-                Layanan karier di Universitas UDSA Salatiga yang membantu mahasiswa dan alumni
-                dalam pengembangan karier. Layanan yang disediakan meliputi:
-            </p>
+    <section class="career-content">
+      <h2>Career Center UDSA</h2>
+      <p>
+        Layanan karier di Universitas UDSA Salatiga yang membantu mahasiswa dan alumni
+        dalam pengembangan karier. Layanan yang disediakan meliputi:
+      </p>
 
-            <ol>
-                <li>
-                    <b>Career Center:</b> Menyediakan informasi lowongan, pelatihan, serta bursa kerja
-                    untuk memfasilitasi lulusan dalam mendapatkan pekerjaan.
-                </li>
-                <li>
-                    <b>Tracer Study:</b> Melakukan pelacakan alumni untuk mengetahui perkembangan
-                    karier mereka setelah lulus serta sebagai bahan evaluasi kualitas pendidikan di UDSA.
-                </li>
-                <li>
-                    <b>E-Legalisir:</b> Layanan digital untuk memudahkan alumni dalam mengurus
-                    legalisasi ijazah dan transkrip secara online tanpa harus datang langsung ke kampus.
-                </li>
-            </ol>
-        </section>
+      <ol>
+        <li><b>Career Center:</b> Menyediakan informasi lowongan, pelatihan, serta bursa kerja untuk memfasilitasi lulusan dalam mendapatkan pekerjaan.</li>
+        <li><b>Tracer Study:</b> Melakukan pelacakan alumni untuk mengetahui perkembangan karier mereka setelah lulus serta sebagai bahan evaluasi kualitas pendidikan di UDSA.</li>
+        <li><b>E-Legalisir:</b> Layanan digital untuk memudahkan alumni dalam mengurus legalisasi ijazah dan transkrip secara online tanpa harus datang langsung ke kampus.</li>
+      </ol>
+    </section>
 
-    </div>
+  </div>
 </div>
 
 <!-- FOOTER -->
 <div class="footer-full">
-    <div class="footer-container">
-        <div class="footer-left">
-            <img src="assets/images/logo.png" class="footer-logo" alt="">
-            <div class="footer-address">
-                <b>UDSA</b><br>
-                Jln. Lingkar Salatiga KM 2 Pulutan<br>
-                Kota Salatiga, Jawa Tengah
-            </div>
-        </div>
-
-        <div class="footer-right">
-            <div class="footer-item">
-                <img src="assets/icons/ig.png" class="footer-icon" alt="">
-                <span>@udsa_salatiga</span>
-            </div>
-            <div class="footer-item">
-                <img src="assets/icons/yt.png" class="footer-icon" alt="">
-                <span>UDSA SALATIGA</span>
-            </div>
-            <div class="footer-item">
-                <img src="assets/icons/telp.png" class="footer-icon" alt="">
-                <span>(+62) 0123456</span>
-            </div>
-            <div class="footer-item">
-                <img src="assets/icons/mail.png" class="footer-icon" alt="">
-                <span>pmb@udsasalatiga.ac.id</span>
-            </div>
-        </div>
+  <div class="footer-container">
+    <div class="footer-left">
+      <img src="assets/images/logo.png" class="footer-logo" alt="">
+      <div class="footer-address">
+        <b>UDSA</b><br>
+        Jln. Lingkar Salatiga KM 2 Pulutan<br>
+        Kota Salatiga, Jawa Tengah
+      </div>
     </div>
+
+    <div class="footer-right">
+      <div class="footer-item">
+        <img src="assets/icons/ig.png" class="footer-icon" alt="">
+        <span>@udsa_salatiga</span>
+      </div>
+      <div class="footer-item">
+        <img src="assets/icons/yt.png" class="footer-icon" alt="">
+        <span>UDSA SALATIGA</span>
+      </div>
+      <div class="footer-item">
+        <img src="assets/icons/telp.png" class="footer-icon" alt="">
+        <span>(+62) 0123456</span>
+      </div>
+      <div class="footer-item">
+        <img src="assets/icons/mail.png" class="footer-icon" alt="">
+        <span>pmb@udsasalatiga.ac.id</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay">
-    <div class="search-panel">
-        <div class="search-close" onclick="closeSearch()">X</div>
+  <div class="search-panel">
+    <div class="search-close" onclick="closeSearch()">X</div>
 
-        <div class="search-container">
-            <div class="search-input-wrapper">
-                <input id="searchInput" type="text" class="search-input" placeholder="Type your search">
-                <span class="search-icon" onclick="doSearch()">🔍</span>
-            </div>
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <input id="searchInput" type="text" class="search-input" placeholder="Type your search">
+        <span class="search-icon" onclick="doSearch()">🔍</span>
+      </div>
 
-            <button class="search-button" onclick="doSearch()">Search</button>
-            <div id="searchResults" class="search-results"></div>
-        </div>
+      <button class="search-button" onclick="doSearch()">Search</button>
+      <div id="searchResults" class="search-results"></div>
     </div>
+  </div>
 </div>
 
 <script>
-// ================== DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH ==================
+// ✅ INJEK: NAV_PAGES dinamis (Login/Dashboard)
 const NAV_PAGES = [
-    { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
-    { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
-    { title: "Biaya", url: "biaya.php", keywords: ["biaya", "uang kuliah", "ukt", "pembayaran"] },
-    { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
-    { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
-    { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
-    { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
-    { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
-    { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
+  { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
+  { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
+  { title: "Biaya", url: "biaya.php", keywords: ["biaya", "uang kuliah", "ukt", "pembayaran"] },
+  { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
+  { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
+  { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
+  {
+    title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
+    url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
+    keywords: ["<?= $isLoggedIn ? 'dashboard' : 'login' ?>", "masuk", "akun"]
+  },
+  { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
+  { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];
 
 function openSearch(){
-    const overlay = document.getElementById("searchOverlay");
-    overlay.style.display = "flex";
-    setTimeout(() => {
-        const input = document.getElementById("searchInput");
-        if(input) input.focus();
-    }, 50);
+  const overlay = document.getElementById("searchOverlay");
+  overlay.style.display = "flex";
+  setTimeout(() => document.getElementById("searchInput")?.focus(), 50);
 }
-
 function closeSearch(){
-    const overlay = document.getElementById("searchOverlay");
-    const input = document.getElementById("searchInput");
-    const resultBox = document.getElementById("searchResults");
-    overlay.style.display = "none";
-    resultBox.innerHTML = "";
-    if (input) input.value = "";
+  const overlay = document.getElementById("searchOverlay");
+  const input = document.getElementById("searchInput");
+  const resultBox = document.getElementById("searchResults");
+  overlay.style.display = "none";
+  resultBox.innerHTML = "";
+  if (input) input.value = "";
 }
-
-/* FUNCTION SEARCH NAVBAR PAGES */
 function doSearch(){
-    const input = document.getElementById("searchInput");
-    const keyword = (input.value || "").trim().toLowerCase();
-    const resultBox = document.getElementById("searchResults");
-    resultBox.innerHTML = "";
+  const input = document.getElementById("searchInput");
+  const keyword = (input.value || "").trim().toLowerCase();
+  const resultBox = document.getElementById("searchResults");
+  resultBox.innerHTML = "";
 
-    if(keyword === ""){
-        alert("Masukkan kata pencarian!");
-        return;
-    }
+  if(keyword === ""){
+    alert("Masukkan kata pencarian!");
+    return;
+  }
 
-    const results = NAV_PAGES.filter(page => {
-        const inTitle = page.title.toLowerCase().includes(keyword);
-        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
-        return inTitle || inKeywords;
-    });
+  const results = NAV_PAGES.filter(page => {
+    const inTitle = page.title.toLowerCase().includes(keyword);
+    const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+    return inTitle || inKeywords;
+  });
 
-    if(results.length === 0){
-        resultBox.innerHTML = '<div class="search-noresult">Halaman tidak ditemukan. Coba kata kunci lain.</div>';
-        return;
-    }
+  if(results.length === 0){
+    resultBox.innerHTML = '<div class="search-noresult">Halaman tidak ditemukan. Coba kata kunci lain.</div>';
+    return;
+  }
 
-    results.forEach(page => {
-        const item = document.createElement("div");
-        item.className = "search-result-item";
-        item.onclick = () => { window.location.href = page.url; };
-        item.innerHTML = `<div class="search-result-item-title">${page.title}</div>`;
-        resultBox.appendChild(item);
-    });
+  results.forEach(page => {
+    const item = document.createElement("div");
+    item.className = "search-result-item";
+    item.onclick = () => { window.location.href = page.url; };
+    item.innerHTML = `<div class="search-result-item-title">${page.title}</div>`;
+    resultBox.appendChild(item);
+  });
 }
 
-// ENTER untuk search
 document.addEventListener("DOMContentLoaded", () => {
-    const input = document.getElementById("searchInput");
-    if (input) {
-        input.addEventListener("keydown", function(e){
-            if(e.key === "Enter"){
-                e.preventDefault();
-                doSearch();
-            }
-        });
+  const input = document.getElementById("searchInput");
+  input?.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault();
+      doSearch();
     }
+  });
 });
-// ESC untuk tutup
+
 document.addEventListener("keydown", (e) => {
-    if(e.key === "Escape"){
-        const overlay = document.getElementById("searchOverlay");
-        if(overlay && overlay.style.display === "flex") closeSearch();
-    }
+  if(e.key === "Escape"){
+    const overlay = document.getElementById("searchOverlay");
+    if(overlay && overlay.style.display === "flex") closeSearch();
+  }
 });
 </script>
 

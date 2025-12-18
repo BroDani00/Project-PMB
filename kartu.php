@@ -19,6 +19,11 @@ if (!$id) {
 /* ✅ INJEK: link kartu peserta dinamis untuk navbar */
 $kartuHref = "kartu.php?id=" . urlencode((string)$id);
 
+/* ✅ INJEK: tombol auth (Login/Dashboard) */
+$isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
+$authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
+$authText   = $isLoggedIn ? "Dashboard" : "Login";
+
 $stmt = $conn->prepare("SELECT * FROM pendaftaran_snbp WHERE id = ?");
 if (!$stmt) {
     die("Gagal prepare: " . $conn->error);
@@ -539,22 +544,25 @@ body{
     </div>
 
     <div class="menu">
-            <a href="home.php">Home</a>
-            <a href="prodi.php">Program Studi</a>
-            <a href="biaya.php">Biaya</a>
+      <a href="home.php">Home</a>
+      <a href="prodi.php">Program Studi</a>
+      <a href="biaya.php">Biaya</a>
 
-            <!-- MENU INFO DROPDOWN -->
-             <div class="menu-info">
-                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
-                <div class="info-dropdown">
-                    <a href="info.php">Jadwal Penerimaan</a>
-                    <a href="pengumuman.php">Pengumuman</a>
-                    <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
-                </div>
-            </div>
+      <!-- MENU INFO DROPDOWN -->
+      <div class="menu-info">
+        <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
+        <div class="info-dropdown">
+          <a href="info.php">Jadwal Penerimaan</a>
+          <a href="pengumuman.php">Pengumuman</a>
+          <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
+        </div>
+      </div>
 
-            <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
+      <a href="daftar.php">Daftar</a>
+
+      <!-- ✅ INJEK: Login → Dashboard dinamis -->
+      <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
+    </div>
   </div>
 </div>
 
@@ -686,7 +694,14 @@ const NAV_PAGES = [
   { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
   { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
   { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
-  { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
+
+  // ✅ INJEK: Login/Dashboard dinamis untuk search overlay
+  {
+    title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
+    url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
+    keywords: ["<?= $isLoggedIn ? 'dashboard' : 'login' ?>", "masuk", "akun", "profil"]
+  },
+
   { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
   { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];

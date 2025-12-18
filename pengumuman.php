@@ -6,6 +6,11 @@ $kartuHref = "kartu.php";
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
 }
+
+/* ✅ INJEK: tombol auth (Login/Dashboard) */
+$isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
+$authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
+$authText   = $isLoggedIn ? "Dashboard" : "Login";
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -270,7 +275,7 @@ body{
     display:flex;
     justify-content:flex-end;
     align-items:center;
-    background-size: cover; /* atau 'contain' */
+    background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
 }
@@ -284,15 +289,9 @@ body{
     line-height:1.6;
     text-align:right;
 }
-.card-bg-1{
-    background-image: url("assets/images/pengumuman-illustrasi.png");
-}
-.card-bg-2{
-    background-image: url("assets/images/pengumuman-illustrasi.png");
-}
-.card-bg-3{
-    background-image: url("assets/images/pengumuman-illustrasi.png");
-}
+.card-bg-1{ background-image: url("assets/images/pengumuman-illustrasi.png"); }
+.card-bg-2{ background-image: url("assets/images/pengumuman-illustrasi.png"); }
+.card-bg-3{ background-image: url("assets/images/pengumuman-illustrasi.png"); }
 
 /* BODY CARD */
 .pengumuman-card-body{
@@ -304,17 +303,17 @@ body{
     font-family:"Poppins", sans-serif;
     font-size:17px;
     line-height:1.7;
-    flex-grow:1;          /* isi body fleksibel */
-    padding-bottom:40px;  /* ruang bawah untuk tombol */
+    flex-grow:1;
+    padding-bottom:40px;
 }
 .pengumuman-card-body p{
     margin:0;
-    min-height:150px;      /* tinggi teks seragam antar card */
+    min-height:150px;
 }
 
 /* READ MORE */
 .pengumuman-card-body .read-more{
-    margin-top:auto;      /* dorong ke bawah */
+    margin-top:auto;
     padding-bottom:10px;
     align-self:center;
     text-decoration:none;
@@ -402,7 +401,6 @@ body{
     to {opacity: 1;}
 }
 
-/* panel abu-abu 50% tinggi layar, di atas, full width */
 .search-panel {
     background:#f5f5f5;
     width:100%;
@@ -414,7 +412,6 @@ body{
     position:relative;
 }
 
-/* tombol X bulat di pojok kanan atas panel */
 .search-close {
     position: absolute;
     top:25px;
@@ -434,13 +431,6 @@ body{
 .search-container {
     width: 70%;
     max-width: 900px;
-}
-
-.search-container label {
-    font-size: 32px;
-    font-family: "Karma", serif;
-    margin-bottom: 12px;
-    display: block;
 }
 
 .search-input-wrapper {
@@ -481,7 +471,6 @@ body{
 }
 .search-button:hover { background:#64581d; }
 
-/* HASIL PENCARIAN DI BAWAH INPUT */
 .search-results{
     margin-top: 28px;
     max-height: 35vh;
@@ -537,14 +526,14 @@ body{
             </div>
         </div>
 
-       <div class="menu">
+        <div class="menu">
             <a href="home.php">Home</a>
             <a href="prodi.php">Program Studi</a>
             <a href="biaya.php">Biaya</a>
 
             <!-- MENU INFO DROPDOWN -->
-             <div class="menu-info">
-                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
+            <div class="menu-info">
+                <a href="info.php" class="info-link active">Info <span class="caret">⌄</span></a>
                 <div class="info-dropdown">
                     <a href="info.php">Jadwal Penerimaan</a>
                     <a href="pengumuman.php">Pengumuman</a>
@@ -553,21 +542,21 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
+
+            <!-- ✅ INJEK: Login -> Dashboard -->
+            <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
+        </div>
     </div>
 </div>
 
 <!-- MAIN -->
 <div class="main-panel">
 
-    <!-- HERO TITLE -->
     <section class="pengumuman-hero">
         <h1>Pengumuman</h1>
     </section>
 
-    <!-- KARTU PENGUMUMAN -->
     <div class="pengumuman-wrapper">
-        <!-- CARD 1 -->
         <div class="pengumuman-card">
             <div class="pengumuman-card-top card-bg-1">
                 <div class="pengumuman-card-top-text">
@@ -587,7 +576,6 @@ body{
             </div>
         </div>
 
-        <!-- CARD 2 -->
         <div class="pengumuman-card">
             <div class="pengumuman-card-top card-bg-2">
                 <div class="pengumuman-card-top-text">
@@ -607,7 +595,6 @@ body{
             </div>
         </div>
 
-        <!-- CARD 3 -->
         <div class="pengumuman-card">
             <div class="pengumuman-card-top card-bg-3">
                 <div class="pengumuman-card-top-text">
@@ -675,14 +662,13 @@ body{
             </div>
 
             <button class="search-button" onclick="doSearch()">Search</button>
-
             <div id="searchResults" class="search-results"></div>
         </div>
     </div>
 </div>
 
 <script>
-// ================== DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH ==================
+// ✅ INJEK: Login/Dashboard ikut dinamis di search
 const NAV_PAGES = [
     { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
     { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
@@ -690,7 +676,11 @@ const NAV_PAGES = [
     { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
     { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
     { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
-    { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
+    {
+        title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
+        url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
+        keywords: ["<?= $isLoggedIn ? 'dashboard' : 'login' ?>", "masuk", "akun", "profil"]
+    },
     { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
     { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];
@@ -713,7 +703,6 @@ function closeSearch(){
     if (input) input.value = "";
 }
 
-/* FUNCTION SEARCH NAVBAR PAGES */
 function doSearch(){
     const input = document.getElementById("searchInput");
     const keyword = (input.value || "").trim().toLowerCase();
@@ -726,8 +715,8 @@ function doSearch(){
     }
 
     const results = NAV_PAGES.filter(page => {
-        const inTitle = page.title.toLowerCase().includes(keyword);
-        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+        const inTitle = (page.title || "").toLowerCase().includes(keyword);
+        const inKeywords = (page.keywords || []).some(k => (k || "").toLowerCase().includes(keyword));
         return inTitle || inKeywords;
     });
 
@@ -745,7 +734,6 @@ function doSearch(){
     });
 }
 
-// ENTER untuk search
 document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById("searchInput");
     if (input) {
@@ -757,7 +745,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-/* opsional: tekan ESC untuk tutup search */
+
 document.addEventListener("keydown", (e) => {
     if(e.key === "Escape"){
         const overlay = document.getElementById("searchOverlay");

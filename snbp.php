@@ -4,6 +4,11 @@ require 'koneksi.php';
 
 $err = "";
 
+// ✅ INJEK: tombol auth (Login/Dashboard) + dipakai juga untuk search overlay
+$isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
+$authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
+$authText   = $isLoggedIn ? "Dashboard" : "Login";
+
 // DAFTAR PRODI (dipakai untuk prodi1 & prodi2)
 $daftar_prodi = [
     "Teknologi Informasi",
@@ -115,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// BUAT LINK NAVBAR KARTU PESERTA DINAMIS
+// ✅ INJEK: LINK NAVBAR KARTU PESERTA DINAMIS
 $kartuHref = "kartu.php";
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
@@ -220,7 +225,6 @@ body{
 }
 
 /* ================= NAV MENU (UNDERLINE KLASIK) ================= */
-
 .menu{
     display:flex;
     align-items:center;
@@ -278,15 +282,13 @@ body{
     transition:border .3s ease;
 }
 .menu a.login:hover{ border-color:#cc0000 !important; }
+
 /* ================= DROPDOWN INFO ================= */
-/* WRAPPER */
 .menu-info{
   position:relative;
   display:flex;
   align-items:center;
 }
-
-/* LINK INFO (TEKS + PANAH SEJAJAR) */
 .menu-info > a.info-link{
   display:inline-flex;
   align-items:center;
@@ -294,16 +296,12 @@ body{
   line-height:1;
   font-weight:400;
 }
-
-/* PANAH ▼ */
 .menu-info > a.info-link .caret{
   display:inline-block;
   font-size:12px;
   line-height:1;
   transform: translateY(-3px);
 }
-
-
 .info-dropdown{
     position:absolute;
     top:100%;
@@ -319,13 +317,11 @@ body{
     transition:opacity .2s ease, transform .2s ease;
     z-index:1000;
 }
-
 .menu-info:hover .info-dropdown{
     opacity:1;
     visibility:visible;
     transform:translateX(-50%) translateY(0);
 }
-
 .info-dropdown a{
     display:block;
     text-decoration:none;
@@ -438,7 +434,6 @@ input[type="file"].form-control{
   .form-grid{ grid-template-columns:1fr; column-gap:0; }
   .form-group{ grid-template-columns: 140px 1fr; }
 
-  /* tombol kartu tetap rapi di layar kecil */
   .nav-container{ flex-wrap:wrap; }
   .menu-center{ order:3; flex-basis:100%; justify-content:flex-start; }
 }
@@ -591,35 +586,37 @@ input[type="file"].form-control{
 
 <!-- NAVBAR -->
 <div class="navbar-full">
-    <div class="nav-container">
+  <div class="nav-container">
 
-        <div class="brand">
-            <img src="assets/images/logo.png">
-            <div>
-                <span class="pmb-title">PMB</span>
-                <span class="udsa-title">UDSA</span>
-            </div>
-        </div>
-
-        <div class="menu">
-            <a href="home.php">Home</a>
-            <a href="prodi.php">Program Studi</a>
-            <a href="biaya.php">Biaya</a>
-
-            <!-- MENU INFO DROPDOWN -->
-            <div class="menu-info">
-                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
-                <div class="info-dropdown">
-                    <a href="info.php">Jadwal Penerimaan</a>
-                    <a href="pengumuman.php">Pengumuman</a>
-                    <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
-                </div>
-            </div>
-
-            <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
-        </div>
+    <div class="brand">
+      <img src="assets/images/logo.png" alt="">
+      <div>
+        <span class="pmb-title">PMB</span>
+        <span class="udsa-title">UDSA</span>
+      </div>
     </div>
+
+    <div class="menu">
+      <a href="home.php">Home</a>
+      <a href="prodi.php">Program Studi</a>
+      <a href="biaya.php">Biaya</a>
+
+      <!-- MENU INFO DROPDOWN -->
+      <div class="menu-info">
+        <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
+        <div class="info-dropdown">
+          <a href="info.php">Jadwal Penerimaan</a>
+          <a href="pengumuman.php">Pengumuman</a>
+          <a href="<?= htmlspecialchars($kartuHref) ?>">Kartu Peserta</a>
+        </div>
+      </div>
+
+      <a href="daftar.php">Daftar</a>
+
+      <!-- ✅ INJEK: Login → Dashboard dinamis -->
+      <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
+    </div>
+  </div>
 </div>
 
 <!-- MAIN FORM -->
@@ -672,7 +669,6 @@ input[type="file"].form-control{
 
           <!-- KOLOM KANAN -->
           <div>
-            <!-- UPLOAD FOTO (sesuai foto) -->
             <div class="form-group">
               <label class="form-label" for="foto">Upload foto</label>
               <input type="file" id="foto" name="foto" class="form-control" accept=".jpg,.jpeg,.png,.webp">
@@ -796,6 +792,14 @@ const NAV_PAGES = [
   { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
   { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
   { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
+
+  // ✅ INJEK: Login/Dashboard dinamis untuk search overlay
+  {
+    title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
+    url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
+    keywords: ["<?= $isLoggedIn ? 'dashboard' : 'login' ?>", "masuk", "akun", "profil"]
+  },
+
   { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
   { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];
@@ -874,7 +878,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!provSelect || !kabSelect || !kecSelect) return;
 
   const API_BASE = "wilayah_proxy.php?path=";
-
 
   function setLoading(selectEl, placeholderText) {
     selectEl.innerHTML = `<option value="">${placeholderText}</option>`;

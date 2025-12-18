@@ -1,5 +1,12 @@
 <?php
 session_start();
+
+/* ✅ INJEK: kalau sudah login, jangan tampilkan halaman login lagi */
+if (!empty($_SESSION['last_pendaftaran_id'])) {
+    header("Location: dashboard.php");
+    exit;
+}
+
 require 'koneksi.php';
 
 $login_err = '';
@@ -48,11 +55,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// link kartu peserta dinamis dari session
+// link kartu peserta dinamis dari session (di login page ini memang kosong karena auto-redirect,
+// tapi tetap aman kalau kamu pakai di halaman lain)
 $kartuHref = "kartu.php";
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode((string)$_SESSION['last_pendaftaran_id']);
 }
+
+/* ✅ INJEK: navbar dinamis (di page login ini defaultnya Login, karena user belum login) */
+$isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
+$authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
+$authText   = $isLoggedIn ? "Dashboard" : "Login";
 ?>
 
 <!DOCTYPE html>
@@ -545,7 +558,7 @@ body{
             <a href="biaya.php">Biaya</a>
 
             <!-- MENU INFO DROPDOWN -->
-             <div class="menu-info">
+            <div class="menu-info">
                 <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
                 <div class="info-dropdown">
                     <a href="info.php">Jadwal Penerimaan</a>
@@ -554,8 +567,12 @@ body{
                 </div>
             </div>
 
-            <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
+            <?php if (!$isLoggedIn): ?>
+                <a href="daftar.php">Daftar</a>
+            <?php endif; ?>
+
+            <!-- tombol dinamis Login/Dashboard -->
+            <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
         </div>
     </div>
 </div>
@@ -576,8 +593,9 @@ body{
             <div class="login-card">
 
                 <div class="login-title">Log in</div>
+
 <?php if ($login_err !== ""): ?>
-  <div style="margin:10px 0 18px; padding:10px 12px; border:2px solid #cc0000; border-radius:10px; font-family:\"Gantari\", sans-serif; font-size:14px; color:#000; background:#ffe5e5;">
+  <div style="margin:10px 0 18px; padding:10px 12px; border:2px solid #cc0000; border-radius:10px; font-family:'Gantari', sans-serif; font-size:14px; color:#000; background:#ffe5e5;">
     <?= htmlspecialchars($login_err) ?>
   </div>
 <?php endif; ?>
@@ -664,8 +682,18 @@ const NAV_PAGES = [
     { title: "Biaya", url: "biaya.php", keywords: ["biaya", "uang kuliah", "ukt", "pembayaran"] },
     { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
     { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
+
+    <?php if (!$isLoggedIn): ?>
     { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
-    { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
+    <?php endif; ?>
+
+    // Login/Dashboard dinamis di search
+    {
+        title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
+        url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
+        keywords: ["<?= $isLoggedIn ? 'dashboard' : 'login' ?>", "akun", "masuk", "profil"]
+    },
+
     { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
     { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];
@@ -701,7 +729,7 @@ function doSearch(){
 
     const results = NAV_PAGES.filter(page => {
         const inTitle = page.title.toLowerCase().includes(keyword);
-        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+        const inKeywords = (page.keywords || []).some(k => (k || "").toLowerCase().includes(keyword));
         return inTitle || inKeywords;
     });
 

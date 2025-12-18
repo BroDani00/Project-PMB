@@ -113,6 +113,11 @@ $kartuHref = "kartu.php";
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
 }
+
+// ✅ INJEK: tombol login berubah jadi dashboard (daftar tetap tampil)
+$isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
+$authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
+$authText   = $isLoggedIn ? "Dashboard" : "Login";
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -311,7 +316,6 @@ body{
   line-height:1;
   transform: translateY(-3px);
 }
-
 
 .info-dropdown{
     position:absolute;
@@ -704,7 +708,6 @@ body{
     height: auto;
 }
 
-
 /* responsive sederhana */
 @media (max-width:900px){
     .welcome{
@@ -750,7 +753,6 @@ body{
     to {opacity: 1;}
 }
 
-/* panel putih hanya setengah tinggi layar */
 .search-panel {
     background:#f5f5f5;
     width:100%;
@@ -762,7 +764,6 @@ body{
     position:relative;
 }
 
-/* tombol X di pojok kanan atas panel */
 .search-close {
     position: absolute;
     top:25px;
@@ -782,13 +783,6 @@ body{
 .search-container {
     width: 70%;
     max-width: 900px;
-}
-
-.search-container label {
-    font-size: 32px;
-    font-family: "Karma", serif;
-    margin-bottom: 12px;
-    display: block;
 }
 
 .search-input-wrapper {
@@ -831,7 +825,6 @@ body{
     background: #64581d;
 }
 
-/* ================= SEARCH RESULTS ================= */
 .search-results{
     margin-top: 28px;
     max-height: 35vh;
@@ -912,8 +905,11 @@ body{
                 </div>
             </div>
 
+            <!-- Daftar tetap tampil -->
             <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
+
+            <!-- ✅ INJEK: Login berubah jadi Dashboard -->
+            <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
         </div>
     </div>
 </div>
@@ -981,7 +977,6 @@ body{
             <h2 class="review-title">Review dan Rating Pendaftar</h2>
 
             <div class="review-top">
-                <!-- bar rating 5–1 (statis dulu) -->
                 <div class="rating-row">
                     <span class="rating-label">5</span>
                     <div class="rating-bar-bg">
@@ -1026,7 +1021,6 @@ body{
             <div class="review-list-wrapper">
                 <h3 class="review-subtitle">Ulasan Teratas Pelayanan Kampus UDSA</h3>
 
-                <!-- FORM TULIS ULASAN -->
                 <div class="review-form">
                     <div class="review-form-row">
                         <input type="text" id="reviewName" placeholder="Nama kamu">
@@ -1042,9 +1036,7 @@ body{
                     <button type="button" onclick="submitReview()">Kirim Ulasan</button>
                 </div>
 
-                <!-- ULASAN DINAMIS DARI DATABASE -->
                 <div id="reviewsContainer"></div>
-
             </div>
         </section>
 
@@ -1087,12 +1079,10 @@ body{
             </div>
 
         </div>
-
-
     </div>
 </div>
 
-<!-- SEARCH OVERLAY (SETENGAH HALAMAN) -->
+<!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay">
     <div class="search-panel">
         <div class="search-close" onclick="closeSearch()">X</div>
@@ -1104,15 +1094,13 @@ body{
             </div>
 
             <button class="search-button" onclick="doSearch()">Search</button>
-
-            <!-- HASIL PENCARIAN DI BAWAH INPUT -->
             <div id="searchResults" class="search-results"></div>
         </div>
     </div>
 </div>
 
 <script>
-// ================== DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH ==================
+// ✅ INJEK: Login -> Dashboard ikut di search list
 const NAV_PAGES = [
     { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
     { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
@@ -1120,7 +1108,11 @@ const NAV_PAGES = [
     { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
     { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
     { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
-    { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
+    {
+        title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
+        url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
+        keywords: ["<?= $isLoggedIn ? 'dashboard' : 'login' ?>", "masuk", "akun", "profil"]
+    },
     { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
     { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];
@@ -1140,7 +1132,6 @@ function closeSearch(){
     document.getElementById("searchInput").value = "";
 }
 
-/* FUNCTION SEARCH NAVBAR PAGES */
 function doSearch(){
     const input = document.getElementById("searchInput");
     const keyword = (input.value || "").trim().toLowerCase();
@@ -1154,7 +1145,7 @@ function doSearch(){
 
     const results = NAV_PAGES.filter(page => {
         const inTitle = page.title.toLowerCase().includes(keyword);
-        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+        const inKeywords = (page.keywords || []).some(k => (k || "").toLowerCase().includes(keyword));
         return inTitle || inKeywords;
     });
 
@@ -1171,15 +1162,14 @@ function doSearch(){
         resultBox.appendChild(item);
     });
 }
-// tekan ENTER untuk search
+
 document.getElementById("searchInput").addEventListener("keydown", function(e){
     if(e.key === "Enter"){
-        e.preventDefault(); // mencegah reload / submit default
+        e.preventDefault();
         doSearch();
     }
 });
 
-/* opsional: tekan ESC untuk tutup search */
 document.addEventListener("keydown", (e) => {
     if(e.key === "Escape"){
         const overlay = document.getElementById("searchOverlay");
@@ -1188,7 +1178,6 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ================== REVIEW: LOAD, SUBMIT, LIKE, DISLIKE ==================
-
 function loadReviews() {
     fetch("home.php?reviews_api=list")
         .then(res => res.json())
@@ -1228,14 +1217,12 @@ function loadReviews() {
                 container.appendChild(card);
             });
 
-            // event listener tombol like
             document.querySelectorAll(".like-btn").forEach(btn => {
                 btn.addEventListener("click", function() {
                     sendReaction(this.dataset.id, "like", this);
                 });
             });
 
-            // event listener tombol dislike
             document.querySelectorAll(".dislike-btn").forEach(btn => {
                 btn.addEventListener("click", function() {
                     sendReaction(this.dataset.id, "dislike", this);
@@ -1272,7 +1259,6 @@ function submitReview() {
     })
     .then(res => res.text())
     .then(resp => {
-        console.log("Response save:", resp);
         if (resp.trim() === "success") {
             nameEl.value = "";
             ratingEl.value = "5";
@@ -1299,7 +1285,6 @@ function sendReaction(id, type, element) {
     })
     .then(res => res.text())
     .then(resp => {
-        console.log("Response react:", resp);
         if (resp.trim() === "success") {
             if (type === "like") {
                 const countSpan = element.querySelector(".like-count");
@@ -1318,19 +1303,7 @@ function sendReaction(id, type, element) {
     });
 }
 
-// ================== DOM READY ==================
 document.addEventListener("DOMContentLoaded", function(){
-    // enter to search
-    const input = document.querySelector(".search-input");
-    if(input){
-        input.addEventListener("keydown", function(e){
-            if(e.key === "Enter"){
-                doSearch();
-            }
-        });
-    }
-
-    // load review dari database
     loadReviews();
 });
 </script>

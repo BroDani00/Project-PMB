@@ -6,6 +6,11 @@ $kartuHref = "kartu.php";
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
 }
+
+/* ✅ INJEK: tombol auth (Login/Dashboard) */
+$isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
+$authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
+$authText   = $isLoggedIn ? "Dashboard" : "Login";
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -490,9 +495,8 @@ body{
             <a href="prodi.php">Program Studi</a>
             <a href="biaya.php">Biaya</a>
 
-            <!-- MENU INFO DROPDOWN -->
-             <div class="menu-info">
-                <a href="info.php" class="info-link">Info <span class="caret">⌄</span></a>
+            <div class="menu-info">
+                <a href="info.php" class="info-link active">Info <span class="caret">⌄</span></a>
                 <div class="info-dropdown">
                     <a href="info.php">Jadwal Penerimaan</a>
                     <a href="pengumuman.php">Pengumuman</a>
@@ -501,7 +505,9 @@ body{
             </div>
 
             <a href="daftar.php">Daftar</a>
-            <a href="login.php" class="login">Login</a>
+
+            <!-- ✅ INJEK: Login -> Dashboard -->
+            <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
         </div>
     </div>
 </div>
@@ -509,12 +515,10 @@ body{
 <!-- MAIN -->
 <div class="main-panel">
 
-    <!-- HERO TITLE -->
     <section class="jadwal-hero">
         <h1>Jadwal Penerimaan Mahasiswa Baru Universitas<br>Dua Sembilan April</h1>
     </section>
 
-    <!-- TABEL JADWAL -->
     <div class="jadwal-wrapper">
         <table class="jadwal-table">
             <thead>
@@ -585,7 +589,6 @@ body{
 <!-- FOOTER -->
 <div class="footer-full">
     <div class="footer-container">
-
         <div class="footer-left">
             <img src="assets/images/logo.png" class="footer-logo">
             <div class="footer-address">
@@ -596,7 +599,6 @@ body{
         </div>
 
         <div class="footer-right">
-
             <div class="footer-item">
                 <img src="assets/icons/ig.png" class="footer-icon">
                 <span>@udsa_salatiga</span>
@@ -616,13 +618,11 @@ body{
                 <img src="assets/icons/mail.png" class="footer-icon">
                 <span>pmb@udsasalatiga.ac.id</span>
             </div>
-
         </div>
-
     </div>
 </div>
 
-<!-- SEARCH OVERLAY (DESAIN AWAL) -->
+<!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay">
     <div class="search-panel">
         <div class="search-close" onclick="closeSearch()">X</div>
@@ -634,14 +634,13 @@ body{
             </div>
 
             <button class="search-button" onclick="doSearch()">Search</button>
-
             <div id="searchResults" class="search-results"></div>
         </div>
     </div>
 </div>
 
 <script>
-// ================== DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH ==================
+// ✅ INJEK: Login/Dashboard ikut dinamis di search
 const NAV_PAGES = [
     { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
     { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
@@ -649,7 +648,11 @@ const NAV_PAGES = [
     { title: "Info / Jadwal Penerimaan", url: "info.php", keywords: ["info", "jadwal", "penerimaan", "pengumuman"] },
     { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
     { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
-    { title: "Login", url: "login.php", keywords: ["login", "masuk", "akun"] },
+    {
+        title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
+        url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
+        keywords: ["<?= $isLoggedIn ? 'dashboard' : 'login' ?>", "masuk", "akun", "profil"]
+    },
     { title: "Berita", url: "berita.php", keywords: ["berita", "news", "informasi"] },
     { title: "Career", url: "career.php", keywords: ["career", "karir", "lowongan"] }
 ];
@@ -672,7 +675,6 @@ function closeSearch(){
     if (input) input.value = "";
 }
 
-/* FUNCTION SEARCH NAVBAR PAGES */
 function doSearch(){
     const input = document.getElementById("searchInput");
     const keyword = (input.value || "").trim().toLowerCase();
@@ -685,8 +687,8 @@ function doSearch(){
     }
 
     const results = NAV_PAGES.filter(page => {
-        const inTitle = page.title.toLowerCase().includes(keyword);
-        const inKeywords = page.keywords.some(k => k.toLowerCase().includes(keyword));
+        const inTitle = (page.title || "").toLowerCase().includes(keyword);
+        const inKeywords = (page.keywords || []).some(k => (k || "").toLowerCase().includes(keyword));
         return inTitle || inKeywords;
     });
 
@@ -704,7 +706,6 @@ function doSearch(){
     });
 }
 
-// ENTER untuk search
 document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById("searchInput");
     if (input) {
@@ -716,7 +717,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-/* opsional: tekan ESC untuk tutup search */
+
 document.addEventListener("keydown", (e) => {
     if(e.key === "Escape"){
         const overlay = document.getElementById("searchOverlay");
