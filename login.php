@@ -611,12 +611,7 @@ body{
 
                     <button type="submit" class="btn-login">Log in</button>
 
-                    <div class="login-footer-links">
-                        <span>Forget your password?</span>
-                        <span>Don't have an account yet?<br>
-                            <a href="#">Create account</a>
-                        </span>
-                    </div>
+                    
                 </form>
 
             </div>
