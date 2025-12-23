@@ -4,10 +4,10 @@ require 'koneksi.php';
 
 $err = "";
 
-// ✅ helper escape
+// helper escape
 function e($v){ return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8'); }
 
-// ✅ INJEK: tombol auth (Login/Dashboard) + dipakai juga untuk search overlay
+// tombol auth (Login/Dashboard) + dipakai juga untuk search overlay
 $isLoggedIn = !empty($_SESSION['last_pendaftaran_id']);
 $authHref   = $isLoggedIn ? "dashboard.php" : "login.php";
 $authText   = $isLoggedIn ? "Dashboard" : "Login";
@@ -22,7 +22,7 @@ $daftar_prodi = [
     "Fisika",
 ];
 
-// ✅ INJEK: ambil riwayat berdasarkan session (kalau ada)
+// ambil riwayat berdasarkan session (kalau ada)
 $riwayat = null;
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $pid = (int)$_SESSION['last_pendaftaran_id'];
@@ -36,10 +36,10 @@ if (!empty($_SESSION['last_pendaftaran_id'])) {
     }
 }
 
-// ✅ INJEK: mode insert/update
+// mode insert/update
 $mode = (!empty($riwayat) && !empty($riwayat['id'])) ? 'update' : 'insert';
 
-// ✅ INJEK: helper isi nilai (POST menang, lalu riwayat)
+// helper isi nilai (POST menang, lalu riwayat)
 $val = function($key) use ($riwayat) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') return $_POST[$key] ?? '';
     return $riwayat[$key] ?? '';
@@ -48,7 +48,7 @@ $val = function($key) use ($riwayat) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama        = trim($_POST['nama'] ?? '');
 
-    // ✅ INJEK: kalau mode update, nisn ambil dari riwayat (tidak boleh berubah)
+    // kalau mode update, nisn ambil dari riwayat (tidak boleh berubah)
     if ($mode === 'update') {
         $nisn = trim(($riwayat['nisn'] ?? '') . '');
     } else {
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
 
         // ===== UPLOAD FOTO (opsional) =====
-        // ✅ update: kalau ga upload foto, pakai foto lama
+        // update: kalau ga upload foto, pakai foto lama
         $fotoDbName = null;
         if ($mode === 'update') {
             $fotoDbName = $riwayat['foto'] ?? null;
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $dest = $uploadDir . "/" . $safeName;
 
                     if (move_uploaded_file($_FILES['foto']['tmp_name'], $dest)) {
-                        $fotoDbName = $safeName; // ✅ simpan nama file saja
+                        $fotoDbName = $safeName; // simpan nama file saja
                     } else {
                         $err = "foto_gagal";
                     }
@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($err === "") {
 
-            // ✅ MODE UPDATE
+            // MODE UPDATE
             if ($mode === 'update') {
                 if (empty($_SESSION['last_pendaftaran_id'])) {
                     header("Location: login.php");
@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
             } else {
-                // ✅ MODE INSERT (kode asli)
+                // MODE INSERT (kode asli)
                 $stmt = $conn->prepare("
                     INSERT INTO pendaftaran_snbp
                     (nama, nisn, email, hp, tgllahir, tempatlahir, asal,
@@ -191,13 +191,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ✅ INJEK: LINK NAVBAR KARTU PESERTA DINAMIS
+// LINK NAVBAR KARTU PESERTA DINAMIS
 $kartuHref = "kartu.php";
 if (!empty($_SESSION['last_pendaftaran_id'])) {
     $kartuHref = "kartu.php?id=" . urlencode($_SESSION['last_pendaftaran_id']);
 }
 
-// ✅ INJEK: flag readonly NISN
+// flag readonly NISN
 $nisnReadonly = ($mode === 'update');
 ?>
 <!DOCTYPE html>
@@ -483,7 +483,7 @@ input[type="file"].form-control{
   background:#fafafa;
 }
 
-/* ✅ INJEK: style readonly biar kelihatan terkunci */
+/* style readonly biar kelihatan terkunci */
 .form-control[readonly]{
   background:#e9e9e9;
   cursor:not-allowed;
@@ -629,7 +629,7 @@ input[type="file"].form-control{
 }
 .search-result-item{
     padding:10px 0;
-    border-bottom:1px solid #ccc;
+    border-bottom:1px solid:#ccc;
     cursor:pointer;
 }
 .search-result-item-title{ font-weight:700; }
@@ -694,7 +694,7 @@ input[type="file"].form-control{
 
       <a href="daftar.php">Daftar</a>
 
-      <!-- ✅ Login → Dashboard dinamis -->
+      <!-- Login → Dashboard dinamis -->
       <a href="<?= htmlspecialchars($authHref) ?>" class="login"><?= htmlspecialchars($authText) ?></a>
     </div>
   </div>
@@ -707,7 +707,7 @@ input[type="file"].form-control{
       <h1 class="form-heading">Pendaftaran Online</h1>
       <h2 class="form-subtitle">Jalur SNPMB SNBP</h2>
 
-      <!-- ✅ RIWAYAT termasuk prov/kab/kec -->
+      <!-- RIWAYAT termasuk prov/kab/kec -->
       <?php if (!empty($riwayat)): ?>
         <div style="margin-bottom:18px;padding:12px 16px;border:2px solid #000;background:#fafafa;font-family:'Katibeh',serif;">
           <div style="font-size:22px;line-height:1.1;">Riwayat ditemukan (data kamu sudah pernah diisi).</div>
@@ -738,11 +738,11 @@ input[type="file"].form-control{
             <div class="form-group">
               <label class="form-label" for="nisn">NISN</label>
 
-              <!-- ✅ NISN readonly saat update -->
+              <!-- NISN readonly saat update -->
               <input type="text" id="nisn" name="nisn" class="form-control" placeholder="NISN"
                      value="<?= e($val('nisn')) ?>" <?= $nisnReadonly ? 'readonly' : '' ?>>
 
-              <!-- ✅ safety: pastikan tetap terkirim -->
+              <!-- safety: pastikan tetap terkirim -->
               <?php if ($nisnReadonly): ?>
                 <input type="hidden" name="nisn" value="<?= e($val('nisn')) ?>">
               <?php endif; ?>
@@ -844,7 +844,7 @@ input[type="file"].form-control{
         <div class="form-actions">
           <button type="button" class="btn btn-kembali" onclick="history.back()">Kembali</button>
 
-          <!-- ✅ tombol dinamis -->
+          <!-- tombol dinamis -->
           <button type="submit" class="btn btn-daftar">
             <?= ($mode === 'update') ? 'Update Data Diri' : 'Daftar' ?>
           </button>
@@ -905,7 +905,7 @@ input[type="file"].form-control{
 </div>
 
 <script>
-// ================== DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH ==================
+// DATA HALAMAN NAVBAR/TOPBAR UNTUK SEARCH
 const NAV_PAGES = [
   { title: "Home", url: "home.php", keywords: ["home", "beranda", "utama", "pmb"] },
   { title: "Program Studi", url: "prodi.php", keywords: ["prodi", "program studi", "jurusan"] },
@@ -914,7 +914,7 @@ const NAV_PAGES = [
   { title: "Pengumuman", url: "pengumuman.php", keywords: ["pengumuman", "hasil", "info terbaru"] },
   { title: "Daftar", url: "daftar.php", keywords: ["daftar", "pendaftaran", "registrasi"] },
 
-  // ✅ Login/Dashboard dinamis untuk search overlay
+  // Login/Dashboard dinamis untuk search overlay
   {
     title: "<?= $isLoggedIn ? 'Dashboard' : 'Login' ?>",
     url: "<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>",
@@ -990,7 +990,7 @@ document.addEventListener("keydown", (e) => {
 });
 </script>
 
-<!-- ================== WILAYAH INDONESIA: PROVINSI -> KAB/KOTA -> KECAMATAN ================== -->
+<!-- WILAYAH INDONESIA: PROVINSI -> KAB/KOTA -> KECAMATAN -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const provSelect = document.getElementById("provinsi");
@@ -1000,7 +1000,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const API_BASE = "wilayah_proxy.php?path=";
 
-  // ✅ ambil riwayat dari attribute data-selected
+  // ambil riwayat dari attribute data-selected
   const selectedProv = (provSelect.dataset.selected || "").trim();
   const selectedKab  = (kabSelect.dataset.selected || "").trim();
   const selectedKec  = (kecSelect.dataset.selected || "").trim();
@@ -1068,7 +1068,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fillOptions(provSelect, "Pilih Provinsi", provs);
       setReady(provSelect);
 
-      // ✅ auto pilih prov → load kab → auto pilih kab → load kec → auto pilih kec
+      // auto pilih prov → load kab → auto pilih kab → load kec → auto pilih kec
       const optProv = selectByValue(provSelect, selectedProv);
       if (optProv && optProv.dataset && optProv.dataset.id) {
         await loadRegenciesByProvinceId(optProv.dataset.id);
@@ -1134,6 +1134,108 @@ if (prodi1) {
   prodi1.addEventListener("change", syncProdi);
   syncProdi();
 }
+</script>
+
+<!-- INJEKSI: TIPE INPUT + MASKING + REGEX REALTIME -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const namaInput = document.querySelector('#nama, [name="nama"]');
+  const nisnInput = document.querySelector('#nisn, [name="nisn"]');
+  const hpInput   = document.querySelector('#hp, [name="hp"]');
+
+  // 1. Tipe Input yang Spesifik (di-set via JS, HTML asli tidak diutak-atik)
+  if (namaInput) {
+    namaInput.setAttribute("type", "text");
+  }
+
+  if (nisnInput) {
+    nisnInput.setAttribute("type", "text");
+    nisnInput.setAttribute("inputmode", "numeric");
+    nisnInput.setAttribute("pattern", "[0-9]{10}");
+  }
+
+  if (hpInput) {
+    // Untuk HP lebih cocok 'tel' + inputmode numeric
+    hpInput.setAttribute("type", "tel");
+    hpInput.setAttribute("inputmode", "numeric");
+    hpInput.setAttribute("pattern", "[0-9\\- ]{10,20}");
+    if (!hpInput.getAttribute("placeholder") || hpInput.getAttribute("placeholder") === "") {
+      hpInput.setAttribute("placeholder", "08xx-xxxx-xxxx");
+    }
+  }
+
+  // 2 & 3. Input Masking + Regex Realtime
+
+  // NAMA: hanya huruf, spasi, ', -
+  if (namaInput) {
+    namaInput.addEventListener("input", function () {
+      // Regex: buang semua yang bukan huruf/spasi/'/-
+      let cleaned = this.value.replace(/[^a-zA-ZÀ-ž\s'\-]/g, "");
+
+      // Rapikan spasi berlebih
+      cleaned = cleaned.replace(/\s+/g, " ").trimStart();
+
+      // Optional: kapital di awal kata
+      cleaned = cleaned.replace(/\b\w/g, function (c) {
+        return c.toUpperCase();
+      });
+
+      if (this.value !== cleaned) {
+        this.value = cleaned;
+      }
+    });
+  }
+
+  // NISN: hanya digit, maks 10 digit
+  if (nisnInput && !nisnInput.hasAttribute("readonly")) {
+    nisnInput.addEventListener("input", function () {
+      // Regex: ambil hanya digit
+      let digits = this.value.replace(/\D/g, "");
+
+      // Batas 10 digit
+      if (digits.length > 10) {
+        digits = digits.slice(0, 10);
+      }
+
+      if (this.value !== digits) {
+        this.value = digits;
+      }
+    });
+  }
+
+  // HP: hanya digit, auto-mask 08xx-xxxx-xxxx
+  if (hpInput) {
+    hpInput.addEventListener("input", function () {
+      // Regex: ambil hanya digit
+      let digits = this.value.replace(/\D/g, "");
+
+      // Normalisasi: kalau user ketik 62... ubah ke 0...
+      if (digits.startsWith("62")) {
+        digits = "0" + digits.slice(2);
+      }
+
+      // Batas panjang misal 13 digit
+      if (digits.length > 13) {
+        digits = digits.slice(0, 13);
+      }
+
+      // Buat mask: 08xx-xxxx-xxxx
+      let masked = digits;
+
+      if (digits.length > 4 && digits.length <= 8) {
+        // 4-4
+        masked = digits.slice(0, 4) + "-" + digits.slice(4);
+      } else if (digits.length > 8) {
+        // 4-4-*
+        masked = digits.slice(0, 4) + "-" + digits.slice(4, 8) + "-" + digits.slice(8);
+      }
+
+      if (this.value !== masked) {
+        this.value = masked;
+      }
+    });
+  }
+});
 </script>
 
 </body>
